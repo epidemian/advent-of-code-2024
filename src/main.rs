@@ -1,28 +1,48 @@
-use anyhow::Context;
-use itertools::Itertools;
+use anyhow::{bail, Context};
+use std::{env, fs, time};
 
-fn main() -> Result<(), anyhow::Error> {
-    const INPUT: &str = include_str!("../inputs/01.txt");
-    let pairs: Vec<_> = INPUT.lines().map(parse_line).try_collect()?;
-    let (mut left, mut right): (Vec<_>, Vec<_>) = pairs.into_iter().unzip();
-    left.sort();
-    right.sort();
+mod day_01_historian_hysteria;
 
-    let total_distance: i64 = left
-        .iter()
-        .zip(right.iter())
-        .map(|(l, r)| (l - r).abs())
-        .sum();
-    let similarity_score: i64 = left
-        .iter()
-        .map(|l| l * right.iter().filter(|&r| r == l).count() as i64)
-        .sum();
+fn main() -> anyhow::Result<()> {
+    let args: Vec<_> = env::args().collect();
+    let days = [day_01_historian_hysteria::run];
 
-    println!("{total_distance} {similarity_score}");
+    let run_single_day = |day_num: usize| -> anyhow::Result<()> {
+        let instant = time::Instant::now();
+        let filename = format!("inputs/{day_num:02}.txt");
+        let input =
+            fs::read_to_string(&filename).with_context(|| format!("Error reading {filename}"))?;
+        let output = days[day_num - 1](&input)?;
+        let time_annotation = format_time_annotation(instant.elapsed());
+        println!("Day {day_num}{time_annotation}: {output}");
+        Ok(())
+    };
+
+    match args.len() {
+        1 => {
+            for day in 1..=days.len() {
+                run_single_day(day)?;
+            }
+        }
+        2 => {
+            let day_num = args[1].parse::<usize>().context("Invalid day number")?;
+            if day_num < 1 || day_num > days.len() {
+                bail!("Day number out of range");
+            }
+            run_single_day(day_num)?;
+        }
+        _ => {
+            bail!("Usage: {} [day_number]", args[0]);
+        }
+    }
+
     Ok(())
 }
 
-fn parse_line(line: &str) -> Result<(i64, i64), anyhow::Error> {
-    let (l, r) = line.split_once("   ").context("expected two numbers")?;
-    Ok((l.parse()?, r.parse()?))
+fn format_time_annotation(elapsed: time::Duration) -> String {
+    if elapsed.as_millis() < 1 {
+        "".to_string()
+    } else {
+        format!(" ({elapsed:.0?})")
+    }
 }
