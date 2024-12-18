@@ -1,9 +1,10 @@
-use anyhow::Context;
 use itertools::Itertools;
 
-pub fn run(input: &str) -> anyhow::Result<String> {
-    let pairs: Vec<_> = input.lines().map(parse_line).try_collect()?;
-    let (mut left, mut right): (Vec<_>, Vec<_>) = pairs.into_iter().unzip();
+pub fn run(input: &str) -> aoc::Result<String> {
+    let (mut left, mut right): (Vec<_>, Vec<_>) = input
+        .lines()
+        .map(parse_line)
+        .process_results(|iter| iter.unzip())?;
     left.sort();
     right.sort();
 
@@ -20,7 +21,8 @@ pub fn run(input: &str) -> anyhow::Result<String> {
     Ok(format!("{total_distance} {similarity_score}"))
 }
 
-fn parse_line(line: &str) -> Result<(i64, i64), anyhow::Error> {
-    let (l, r) = line.split_once("   ").context("expected two numbers")?;
-    Ok((l.parse()?, r.parse()?))
+fn parse_line(line: &str) -> aoc::Result<(i64, i64)> {
+    let numbers = aoc::parse_numbers(line)?;
+    let [l, r] = numbers[..].try_into()?;
+    Ok((l, r))
 }

@@ -3,11 +3,11 @@ use std::{env, fs, time};
 
 mod day_01_historian_hysteria;
 
-fn main() -> anyhow::Result<()> {
+fn main() -> aoc::Result<()> {
     let args: Vec<_> = env::args().collect();
     let days = [day_01_historian_hysteria::run];
 
-    let run_single_day = |day_num: usize| -> anyhow::Result<()> {
+    let run_single_day = |day_num: usize| -> aoc::Result<()> {
         let instant = time::Instant::now();
         let filename = format!("inputs/{day_num:02}.txt");
         let input =
