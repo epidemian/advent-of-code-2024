@@ -26,3 +26,15 @@ fn parse_line(line: &str) -> aoc::Result<(i64, i64)> {
     let [l, r] = numbers[..].try_into()?;
     Ok((l, r))
 }
+
+#[test]
+fn sample() {
+    let sample = "3   4
+4   3
+2   5
+1   3
+3   9
+3   3
+";
+    assert_eq!(run(sample).unwrap(), "11 31")
+}
