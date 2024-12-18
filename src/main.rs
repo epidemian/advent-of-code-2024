@@ -1,14 +1,10 @@
 use anyhow::Context;
+use itertools::Itertools;
 
 fn main() -> Result<(), anyhow::Error> {
-    let mut left: Vec<i64> = vec![];
-    let mut right: Vec<i64> = vec![];
     const INPUT: &str = include_str!("../inputs/01.txt");
-    for line in INPUT.lines() {
-        let (l, r) = line.split_once("   ").context("expected two numbers")?;
-        left.push(l.parse()?);
-        right.push(r.parse()?);
-    }
+    let pairs: Vec<_> = INPUT.lines().map(parse_line).try_collect()?;
+    let (mut left, mut right): (Vec<_>, Vec<_>) = pairs.into_iter().unzip();
     left.sort();
     right.sort();
 
@@ -24,4 +20,9 @@ fn main() -> Result<(), anyhow::Error> {
 
     println!("{total_distance} {similarity_score}");
     Ok(())
+}
+
+fn parse_line(line: &str) -> Result<(i64, i64), anyhow::Error> {
+    let (l, r) = line.split_once("   ").context("expected two numbers")?;
+    Ok((l.parse()?, r.parse()?))
 }
