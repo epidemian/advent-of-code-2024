@@ -2,10 +2,14 @@ use anyhow::{bail, Context};
 use std::{env, fs, time};
 
 mod day_01_historian_hysteria;
+mod day_02_red_nosed_reports;
 
 fn main() -> aoc::Result<()> {
     let args: Vec<_> = env::args().collect();
-    let days = [day_01_historian_hysteria::run];
+    let days = [
+        day_01_historian_hysteria::run,
+        day_02_red_nosed_reports::run,
+    ];
 
     let run_single_day = |day_num: usize| -> aoc::Result<()> {
         let instant = time::Instant::now();
