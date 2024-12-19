@@ -1,7 +1,7 @@
 use itertools::Itertools;
 
 pub fn run(input: &str) -> aoc::Result<String> {
-    let reports: Vec<_> = input.lines().map(aoc::parse_numbers::<i64>).try_collect()?;
+    let reports: Vec<_> = input.lines().map(aoc::parse_numbers).try_collect()?;
     let p1_safe_count = reports.iter().filter(|r| is_safe(r)).count();
     let p2_safe_count = reports.iter().filter(|r| is_safe_with_dampener(r)).count();
     Ok(format!("{p1_safe_count} {p2_safe_count}"))
