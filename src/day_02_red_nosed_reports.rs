@@ -8,9 +8,8 @@ pub fn run(input: &str) -> aoc::Result<String> {
 }
 
 fn is_safe(report: &[i64]) -> bool {
-    let diffs = report.iter().tuple_windows().map(|(a, b)| a - b);
-    (diffs.clone().all(|d| d > 0) || diffs.clone().all(|d| d < 0))
-        && diffs.clone().all(|d| d.abs() >= 1 && d.abs() <= 3)
+    let diffs = || report.iter().tuple_windows().map(|(a, b)| a - b);
+    diffs().map(|d| d.signum()).all_equal() && diffs().all(|d| 1 <= d.abs() && d.abs() <= 3)
 }
 
 fn is_safe_with_dampener(report: &[i64]) -> bool {
