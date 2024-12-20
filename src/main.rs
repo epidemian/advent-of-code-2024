@@ -3,12 +3,14 @@ use std::{env, fs, time};
 
 mod day_01_historian_hysteria;
 mod day_02_red_nosed_reports;
+mod day_03_mull_it_over;
 
 fn main() -> aoc::Result<()> {
     let args: Vec<_> = env::args().collect();
     let days = [
         day_01_historian_hysteria::run,
         day_02_red_nosed_reports::run,
+        day_03_mull_it_over::run,
     ];
 
     let run_single_day = |day_num: usize| -> aoc::Result<()> {
