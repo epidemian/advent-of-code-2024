@@ -16,9 +16,9 @@ pub fn run(input: &str) -> aoc::Result<String> {
             dirs.into_iter()
                 .filter(|(dx, dy)| {
                     let strip = array::from_fn(|i| {
-                        let sx = x.wrapping_add_signed(dx * i as isize);
-                        let sy = y.wrapping_add_signed(dy * i as isize);
-                        grid.get(sy)?.get(sx).copied()
+                        let ch_x = x.wrapping_add_signed(dx * i as isize);
+                        let ch_y = y.wrapping_add_signed(dy * i as isize);
+                        grid.get(ch_y)?.get(ch_x).copied()
                     });
                     strip == [Some('X'), Some('M'), Some('A'), Some('S')]
                 })
