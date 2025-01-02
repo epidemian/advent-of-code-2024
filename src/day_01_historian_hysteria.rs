@@ -28,7 +28,7 @@ fn parse_line(line: &str) -> aoc::Result<(i64, i64)> {
 }
 
 #[test]
-fn sample() {
+fn sample_test() {
     let sample = "3   4
 4   3
 2   5

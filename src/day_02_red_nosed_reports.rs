@@ -21,7 +21,7 @@ fn is_safe_with_dampener(report: &[i64]) -> bool {
 }
 
 #[test]
-fn sample() {
+fn sample_test() {
     let sample = "7 6 4 2 1
 1 2 7 8 9
 9 7 6 2 1

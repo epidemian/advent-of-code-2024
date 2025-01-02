@@ -39,12 +39,14 @@ pub fn run(input: &str) -> aoc::Result<String> {
 }
 
 #[test]
-fn empty() {
-    assert_eq!(run("").unwrap(), "0 0")
+fn small_inputs_test() {
+    assert_eq!(run("").unwrap(), "0 0");
+    assert_eq!(run("SMA").unwrap(), "0 0");
+    assert_eq!(run("S\nM\nA").unwrap(), "0 0");
 }
 
 #[test]
-fn sample() {
+fn sample_test() {
     let sample = "MMMSXXMASM
 MSAMXMSMSA
 AMXSXMAAMM

@@ -27,13 +27,13 @@ fn run_program(input: &str, conditionals: bool) -> aoc::Result<u64> {
 }
 
 #[test]
-fn part_1_sample() {
+fn sample_1_test() {
     let sample = "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))";
     assert_eq!(run_program(sample, false).unwrap(), 161)
 }
 
 #[test]
-fn part_2_sample() {
+fn sample_2_test() {
     let sample = "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))";
     assert_eq!(run_program(sample, true).unwrap(), 48)
 }
