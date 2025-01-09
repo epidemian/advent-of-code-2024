@@ -28,10 +28,10 @@ pub fn run(input: &str) -> aoc::Result<String> {
 
     let x_mas_count = iproduct!(0..w.saturating_sub(2), 0..h.saturating_sub(2))
         .filter(|(x, y)| {
-            let at = |dx: usize, dy: usize| grid[y + dy][x + dx];
-            at(1, 1) == 'A'
-                && matches!((at(0, 0), at(2, 2)), ('M', 'S') | ('S', 'M'))
-                && matches!((at(0, 2), at(2, 0)), ('M', 'S') | ('S', 'M'))
+            let diag_1 = array::from_fn(|i| grid[y + i][x + i]);
+            let diag_2 = array::from_fn(|i| grid[y + i][x + 2 - i]);
+            let is_mas = |diag| diag == ['M', 'A', 'S'] || diag == ['S', 'A', 'M'];
+            is_mas(diag_1) && is_mas(diag_2)
         })
         .count();
 
