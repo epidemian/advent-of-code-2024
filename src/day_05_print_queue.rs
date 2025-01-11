@@ -3,51 +3,42 @@ use itertools::Itertools;
 
 pub fn run(input: &str) -> aoc::Result<String> {
     let (rules_part, updates_part) = input.split_once("\n\n").context("invalid input")?;
-    let rules: Vec<[u32; 2]> = rules_part
+    let rules: Vec<(u32, u32)> = rules_part
         .lines()
         .map(|line| {
-            let numbers = aoc::parse_numbers(line)?;
-            numbers[..].try_into().context("expected two numbers")
+            aoc::parse_numbers(line)?
+                .into_iter()
+                .collect_tuple()
+                .context("expected two numbers")
         })
         .try_collect()?;
     let updates: Vec<Vec<u32>> = updates_part.lines().map(aoc::parse_numbers).try_collect()?;
 
-    let (correct_updates, mut incorrect_updates): (Vec<_>, Vec<_>) =
-        updates.into_iter().partition(|pages| {
-            rules.iter().all(|[before, after]| {
-                let Some(before_index) = pages.iter().position(|page| page == before) else {
-                    return true;
-                };
-                let Some(after_index) = pages.iter().position(|page| page == after) else {
-                    return true;
-                };
-                before_index < after_index
-            })
-        });
-    let middle_page_sum_p1: u32 = correct_updates
-        .iter()
-        .map(|pages| pages[pages.len() / 2])
-        .sum();
+    let (correct_updates, mut incorrect_updates): (Vec<_>, Vec<_>) = updates
+        .into_iter()
+        .partition(|pages| find_broken_rule(pages, &rules).is_none());
+    let middle_page_sum_p1 = add_middle_pages(&correct_updates);
 
     for pages in &mut incorrect_updates {
-        loop {
-            let offending_rule = rules.iter().find_map(|[before, after]| {
-                let before_index = pages.iter().position(|page| page == before)?;
-                let after_index = pages.iter().position(|page| page == after)?;
-                (before_index > after_index).then_some((before_index, after_index))
-            });
-            let Some((before_index, after_index)) = offending_rule else {
-                break;
-            };
-            pages.swap(before_index, after_index);
+        while let Some((i, j)) = find_broken_rule(pages, &rules) {
+            pages.swap(i, j);
         }
     }
-    let middle_page_sum_p2: u32 = incorrect_updates
-        .iter()
-        .map(|pages| pages[pages.len() / 2])
-        .sum();
+    let middle_page_sum_p2 = add_middle_pages(&incorrect_updates);
 
     Ok(format!("{middle_page_sum_p1} {middle_page_sum_p2}"))
+}
+
+fn find_broken_rule(pages: &[u32], rules: &[(u32, u32)]) -> Option<(usize, usize)> {
+    rules.iter().find_map(|(before, after)| {
+        let before_index = pages.iter().position(|page| page == before)?;
+        let after_index = pages.iter().position(|page| page == after)?;
+        (before_index > after_index).then_some((before_index, after_index))
+    })
+}
+
+fn add_middle_pages(updates: &[Vec<u32>]) -> u32 {
+    updates.iter().map(|pages| pages[pages.len() / 2]).sum()
 }
 
 #[test]
