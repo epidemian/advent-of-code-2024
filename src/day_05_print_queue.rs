@@ -21,8 +21,8 @@ pub fn run(input: &str) -> aoc::Result<String> {
         while fix_single_broken_rule(pages, &rules) {
             needed_sorting = true;
         }
-        let middle_page = pages[pages.len() / 2];
-        sums[needed_sorting as usize] += middle_page;
+        let middle_page = pages.get(pages.len() / 2);
+        sums[needed_sorting as usize] += middle_page.unwrap_or(&0);
     }
 
     Ok(format!("{} {}", sums[0], sums[1]))
@@ -40,6 +40,12 @@ fn fix_single_broken_rule(pages: &mut [u32], ordering_rules: &HashSet<(u32, u32)
         }
     }
     false
+}
+
+#[test]
+fn empty_update_line_test() {
+    let sample = "1|2\n\n ";
+    assert_eq!(run(sample).unwrap(), "0 0")
 }
 
 #[test]
