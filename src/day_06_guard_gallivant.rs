@@ -26,7 +26,7 @@ pub fn run(input: &str) -> aoc::Result<String> {
 }
 
 fn guard_walk(map: &[Vec<char>], start_pos: (usize, usize)) -> Option<Vec<(usize, usize)>> {
-    let map_size = map.len() * map[0].len();
+    let map_size = map.len() * map[0].len(); // Map cannot be empty; guard is at start_pos.
     let (mut x, mut y) = start_pos;
     let (mut dx, mut dy) = (0, -1);
     let mut guard_path = vec![(x, y)];
@@ -45,6 +45,17 @@ fn guard_walk(map: &[Vec<char>], start_pos: (usize, usize)) -> Option<Vec<(usize
             }
         }
     }
+}
+
+#[test]
+fn no_guard_test() {
+    assert_eq!(run("").unwrap_err().to_string(), "guard not found");
+    assert_eq!(run(".").unwrap_err().to_string(), "guard not found");
+}
+
+#[test]
+fn small_input_test() {
+    assert_eq!(run("^").unwrap(), "1 0");
 }
 
 #[test]
