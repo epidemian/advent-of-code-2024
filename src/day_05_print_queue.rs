@@ -30,13 +30,8 @@ pub fn run(input: &str) -> aoc::Result<String> {
         .sum();
 
     for pages in &mut incorrect_updates {
-        let update_rules: Vec<_> = rules
-            .iter()
-            .filter(|[before, after]| pages.contains(before) && pages.contains(after))
-            .copied()
-            .collect();
         loop {
-            let offending_rule = update_rules.iter().find_map(|[before, after]| {
+            let offending_rule = rules.iter().find_map(|[before, after]| {
                 let before_index = pages.iter().position(|page| page == before)?;
                 let after_index = pages.iter().position(|page| page == after)?;
                 (before_index > after_index).then_some((before_index, after_index))
