@@ -1,9 +1,10 @@
 use anyhow::Context;
 use itertools::Itertools;
+use std::collections::HashSet;
 
 pub fn run(input: &str) -> aoc::Result<String> {
     let (rules_part, updates_part) = input.split_once("\n\n").context("invalid input")?;
-    let rules: Vec<(u32, u32)> = rules_part
+    let rules: HashSet<(u32, u32)> = rules_part
         .lines()
         .map(|line| {
             aoc::parse_numbers(line)?
@@ -12,33 +13,33 @@ pub fn run(input: &str) -> aoc::Result<String> {
                 .context("expected two numbers")
         })
         .try_collect()?;
-    let updates: Vec<Vec<u32>> = updates_part.lines().map(aoc::parse_numbers).try_collect()?;
+    let mut updates: Vec<Vec<u32>> = updates_part.lines().map(aoc::parse_numbers).try_collect()?;
 
-    let (correct_updates, mut incorrect_updates): (Vec<_>, Vec<_>) = updates
-        .into_iter()
-        .partition(|pages| find_broken_rule(pages, &rules).is_none());
-    let middle_page_sum_p1 = add_middle_pages(&correct_updates);
+    let mut sums = [0, 0];
+    for pages in &mut updates {
+        let mut needed_sorting = false;
+        while fix_single_broken_rule(pages, &rules) {
+            needed_sorting = true;
+        }
+        let middle_page = pages[pages.len() / 2];
+        sums[needed_sorting as usize] += middle_page;
+    }
 
-    for pages in &mut incorrect_updates {
-        while let Some((i, j)) = find_broken_rule(pages, &rules) {
-            pages.swap(i, j);
+    Ok(format!("{} {}", sums[0], sums[1]))
+}
+
+fn fix_single_broken_rule(pages: &mut [u32], ordering_rules: &HashSet<(u32, u32)>) -> bool {
+    for (page_idx, &page) in pages.iter().enumerate() {
+        for (page_after_idx, &page_after) in pages.iter().enumerate().skip(page_idx + 1) {
+            if ordering_rules.contains(&(page_after, page)) {
+                // An ordering rule is broken because `page_after` should go before `page`.
+                // Fix that ordering rule by swapping those two pages.
+                pages.swap(page_idx, page_after_idx);
+                return true;
+            }
         }
     }
-    let middle_page_sum_p2 = add_middle_pages(&incorrect_updates);
-
-    Ok(format!("{middle_page_sum_p1} {middle_page_sum_p2}"))
-}
-
-fn find_broken_rule(pages: &[u32], rules: &[(u32, u32)]) -> Option<(usize, usize)> {
-    rules.iter().find_map(|(before, after)| {
-        let before_index = pages.iter().position(|page| page == before)?;
-        let after_index = pages.iter().position(|page| page == after)?;
-        (before_index > after_index).then_some((before_index, after_index))
-    })
-}
-
-fn add_middle_pages(updates: &[Vec<u32>]) -> u32 {
-    updates.iter().map(|pages| pages[pages.len() / 2]).sum()
+    false
 }
 
 #[test]
