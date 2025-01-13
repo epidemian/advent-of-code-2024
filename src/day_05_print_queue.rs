@@ -13,12 +13,12 @@ pub fn run(input: &str) -> aoc::Result<String> {
                 .context("expected two numbers")
         })
         .try_collect()?;
-    let mut updates: Vec<Vec<u32>> = updates_part.lines().map(aoc::parse_numbers).try_collect()?;
 
     let mut sums = [0, 0];
-    for pages in &mut updates {
+    for line in updates_part.lines() {
+        let mut pages = aoc::parse_numbers(line)?;
         let mut needed_sorting = false;
-        while fix_single_broken_rule(pages, &rules) {
+        while fix_single_broken_rule(&mut pages, &rules) {
             needed_sorting = true;
         }
         let middle_page = pages.get(pages.len() / 2);
