@@ -1,5 +1,5 @@
 use anyhow::{bail, Context};
-use std::{env, fs, time};
+use std::{env, fs, io::IsTerminal, time};
 
 mod day_01_historian_hysteria;
 mod day_02_red_nosed_reports;
@@ -54,7 +54,8 @@ fn main() -> aoc::Result<()> {
 }
 
 fn format_time_annotation(elapsed: time::Duration) -> String {
-    if elapsed.as_millis() < 1 {
+    // Don't output duration if it's insignificant or we're not on a TTY (e.g. stdout is piped).
+    if elapsed.as_millis() < 1 || !std::io::stdout().is_terminal() {
         "".to_string()
     } else {
         format!(" ({elapsed:.0?})")
