@@ -10,36 +10,34 @@ pub fn run(input: &str) -> aoc::Result<String> {
             Ok((numbers[0], numbers[1..].to_vec()))
         })
         .try_collect()?;
-    let total_p1: u64 = calibration_equations
-        .iter()
-        .filter(|&(test_value, ops)| can_equal_p1(*test_value, ops[0], &ops[1..]))
-        .map(|(val, _)| val)
-        .sum();
-    let total_p2: u64 = calibration_equations
-        .iter()
-        .filter(|&(test_value, ops)| can_equal_p2(*test_value, ops[0], &ops[1..]))
-        .map(|(val, _)| val)
-        .sum();
+
+    let [total_p1, total_p2] = [can_equal, can_equal_with_concat].map(|can_equal| {
+        calibration_equations
+            .iter()
+            .filter(|&(val, ops)| can_equal(*val, ops[0], &ops[1..]))
+            .map(|(val, _)| val)
+            .sum::<u64>()
+    });
     Ok(format!("{total_p1} {total_p2}"))
 }
 
-fn can_equal_p1(test_value: u64, first_op: u64, rest: &[u64]) -> bool {
-    match rest {
-        [] => first_op == test_value,
+fn can_equal(value: u64, first_op: u64, more_ops: &[u64]) -> bool {
+    match more_ops {
+        [] => first_op == value,
         [second_op, rest @ ..] => {
-            can_equal_p1(test_value, first_op + second_op, rest)
-                || can_equal_p1(test_value, first_op * second_op, rest)
+            can_equal(value, first_op + second_op, rest)
+                || can_equal(value, first_op * second_op, rest)
         }
     }
 }
 
-fn can_equal_p2(test_value: u64, first_op: u64, rest: &[u64]) -> bool {
-    match rest {
-        [] => first_op == test_value,
+fn can_equal_with_concat(value: u64, first_op: u64, more_ops: &[u64]) -> bool {
+    match more_ops {
+        [] => first_op == value,
         [second_op, rest @ ..] => {
-            can_equal_p2(test_value, first_op + second_op, rest)
-                || can_equal_p2(test_value, first_op * second_op, rest)
-                || can_equal_p2(test_value, concat(first_op, *second_op), rest)
+            can_equal_with_concat(value, first_op + second_op, rest)
+                || can_equal_with_concat(value, first_op * second_op, rest)
+                || can_equal_with_concat(value, concat(first_op, *second_op), rest)
         }
     }
 }
