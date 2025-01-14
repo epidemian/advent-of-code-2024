@@ -22,24 +22,19 @@ pub fn run(input: &str) -> aoc::Result<String> {
 }
 
 fn can_equal(value: u64, first_op: u64, more_ops: &[u64]) -> bool {
-    match more_ops {
-        [] => first_op == value,
-        [second_op, rest @ ..] => {
-            can_equal(value, first_op + second_op, rest)
-                || can_equal(value, first_op * second_op, rest)
-        }
-    }
+    let Some((&second_op, rest)) = more_ops.split_first() else {
+        return first_op == value;
+    };
+    can_equal(value, first_op + second_op, rest) || can_equal(value, first_op * second_op, rest)
 }
 
 fn can_equal_with_concat(value: u64, first_op: u64, more_ops: &[u64]) -> bool {
-    match more_ops {
-        [] => first_op == value,
-        [second_op, rest @ ..] => {
-            can_equal_with_concat(value, first_op + second_op, rest)
-                || can_equal_with_concat(value, first_op * second_op, rest)
-                || can_equal_with_concat(value, concat(first_op, *second_op), rest)
-        }
-    }
+    let Some((&second_op, rest)) = more_ops.split_first() else {
+        return first_op == value;
+    };
+    can_equal_with_concat(value, first_op + second_op, rest)
+        || can_equal_with_concat(value, first_op * second_op, rest)
+        || can_equal_with_concat(value, concat(first_op, second_op), rest)
 }
 
 fn concat(a: u64, b: u64) -> u64 {
