@@ -45,7 +45,8 @@ fn can_equal_p2(test_value: u64, first_op: u64, rest: &[u64]) -> bool {
 }
 
 fn concat(a: u64, b: u64) -> u64 {
-    a * 10_u64.pow(b.ilog10() + 1) + b
+    let decimal_digits = b.checked_ilog10().unwrap_or(0) + 1;
+    a * 10_u64.pow(decimal_digits) + b
 }
 
 #[test]
@@ -61,4 +62,9 @@ fn sample_test() {
 292: 11 6 16 20
 ";
     assert_eq!(run(sample).unwrap(), "3749 11387")
+}
+
+#[test]
+fn concat_zero_test() {
+    assert_eq!(run("420: 42 0").unwrap(), "0 420")
 }
