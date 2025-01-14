@@ -34,6 +34,9 @@ fn can_equal_p1(test_value: u64, first_op: u64, rest: &[u64]) -> bool {
 }
 
 fn can_equal_p2(test_value: u64, first_op: u64, rest: &[u64]) -> bool {
+    if first_op > test_value {
+        return false;
+    }
     match rest {
         [] => first_op == test_value,
         [second_op, rest @ ..] => {
