@@ -7,6 +7,7 @@ mod day_03_mull_it_over;
 mod day_04_ceres_search;
 mod day_05_print_queue;
 mod day_06_guard_gallivant;
+mod day_07_bridge_repair;
 
 fn main() -> aoc::Result<()> {
     let args: Vec<_> = env::args().collect();
@@ -17,6 +18,7 @@ fn main() -> aoc::Result<()> {
         day_04_ceres_search::run,
         day_05_print_queue::run,
         day_06_guard_gallivant::run,
+        day_07_bridge_repair::run,
     ];
 
     let run_single_day = |day_num: usize| -> aoc::Result<()> {
