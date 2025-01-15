@@ -1,16 +1,12 @@
 use itertools::{iproduct, Itertools};
-use std::collections::HashMap;
 
 pub fn run(input: &str) -> aoc::Result<String> {
     let (map, w, h) = aoc::parse_char_grid(input)?;
 
-    let mut antennas: HashMap<char, Vec<(i64, i64)>> = HashMap::new();
-    for (x, y) in iproduct!(0..w, 0..h) {
-        let ch = map[y][x];
-        if ch != '.' {
-            antennas.entry(ch).or_default().push((x as i64, y as i64));
-        }
-    }
+    let antennas = iproduct!(0..w, 0..h)
+        .map(|(x, y)| (map[y][x], (x as i64, y as i64)))
+        .filter(|&(ch, _)| ch != '.')
+        .into_group_map();
 
     let antinode_count_p1 = antennas
         .values()
