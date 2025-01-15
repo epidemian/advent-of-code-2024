@@ -1,4 +1,4 @@
-use anyhow::{bail, Context};
+use anyhow::{bail, ensure, Context};
 use std::{env, fs, io::IsTerminal, time};
 
 mod day_01_historian_hysteria;
@@ -10,7 +10,6 @@ mod day_06_guard_gallivant;
 mod day_07_bridge_repair;
 
 fn main() -> aoc::Result<()> {
-    let args: Vec<_> = env::args().collect();
     let days = [
         day_01_historian_hysteria::run,
         day_02_red_nosed_reports::run,
@@ -32,18 +31,17 @@ fn main() -> aoc::Result<()> {
         Ok(())
     };
 
+    let args: Vec<_> = env::args().collect();
     match args.len() {
         1 => {
-            for day in 1..=days.len() {
-                run_single_day(day)?;
+            for n in 1..=days.len() {
+                run_single_day(n)?;
             }
         }
         2 => {
-            let day_num = args[1].parse::<usize>().context("Invalid day number")?;
-            if day_num < 1 || day_num > days.len() {
-                bail!("Day number out of range");
-            }
-            run_single_day(day_num)?;
+            let n = args[1].parse().context("Invalid day number")?;
+            ensure!(1 <= n && n <= days.len(), "Day number out of range");
+            run_single_day(n)?;
         }
         _ => {
             bail!("Usage: {} [day_number]", args[0]);
