@@ -2,7 +2,7 @@ use itertools::{chain, iproduct, Itertools};
 
 pub fn run(input: &str) -> aoc::Result<String> {
     let (map, w, h) = aoc::parse_char_grid(input)?;
-    let is_inside_map = |(x, y)| 0 <= x && x < w as i64 && 0 <= y && y < h as i64;
+    let within_bounds = |&(x, y): &_| 0 <= x && x < w as i64 && 0 <= y && y < h as i64;
 
     let antennas_by_freq = iproduct!(0..w, 0..h)
         .map(|(x, y)| (map[y][x], (x as i64, y as i64)))
@@ -12,20 +12,17 @@ pub fn run(input: &str) -> aoc::Result<String> {
 
     let antinode_count_p1 = count_antinodes(&antenna_groups, |(x1, y1), (x2, y2)| {
         let (dx, dy) = (x1 - x2, y1 - y2);
-        [(x1 + dx, y1 + dy), (x2 - dx, y2 - dy)]
-            .into_iter()
-            .filter(|&p| is_inside_map(p))
+        let antinode_pair = [(x1 + dx, y1 + dy), (x2 - dx, y2 - dy)];
+        antinode_pair.into_iter().filter(within_bounds)
     });
 
     let antinode_count_p2 = count_antinodes(&antenna_groups, |(x1, y1), (x2, y2)| {
         let (dx, dy) = (x1 - x2, y1 - y2);
+        let line_1 = (0..).map(move |i| (x1 + dx * i, y1 + dy * i));
+        let line_2 = (0..).map(move |i| (x2 - dx * i, y2 - dy * i));
         chain(
-            (0..)
-                .map(move |i| (x1 + dx * i, y1 + dy * i))
-                .take_while(|&p| is_inside_map(p)),
-            (1..)
-                .map(move |i| (x1 - dx * i, y1 - dy * i))
-                .take_while(|&p| is_inside_map(p)),
+            line_1.take_while(within_bounds),
+            line_2.take_while(within_bounds),
         )
     });
 
@@ -39,16 +36,11 @@ fn count_antinodes<I>(
 where
     I: Iterator<Item = (i64, i64)>,
 {
-    antenna_groups
-        .iter()
-        .flat_map(|antennas| {
-            antennas
-                .iter()
-                .tuple_combinations()
-                .flat_map(|(&a, &b)| get_antinodes(a, b))
-        })
-        .unique()
-        .count()
+    let all_antinodes = antenna_groups.iter().flat_map(|antennas| {
+        let antenna_pairs = antennas.iter().tuple_combinations();
+        antenna_pairs.flat_map(|(&a, &b)| get_antinodes(a, b))
+    });
+    all_antinodes.unique().count()
 }
 
 #[test]
