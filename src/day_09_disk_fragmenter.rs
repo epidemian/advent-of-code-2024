@@ -38,17 +38,14 @@ fn compact_blocks(mut blocks: Vec<i32>) -> u64 {
 }
 
 fn compact_whole_files(mut blocks: Vec<i32>) -> u64 {
-    let mut files = vec![];
-    let mut free_spaces = vec![];
-    for (block, chunk) in &blocks.iter().enumerate().chunk_by(|(_, b)| **b) {
-        let chunk = chunk.collect_vec();
-        let chunk_info = (chunk[0].0, chunk.len());
-        if block == FREE {
-            free_spaces.push(chunk_info);
-        } else {
-            files.push(chunk_info);
-        }
-    }
+    let chunks = blocks.iter().enumerate().chunk_by(|(_, b)| **b);
+    let (mut free_spaces, files): (Vec<_>, Vec<_>) = chunks
+        .into_iter()
+        .map(|(_, chunk)| {
+            let chunk = chunk.collect_vec();
+            (chunk[0].0, chunk.len())
+        })
+        .partition(|&(pos, _)| blocks[pos] == FREE);
 
     for &(file_pos, file_size) in files.iter().rev() {
         let free_space = free_spaces
