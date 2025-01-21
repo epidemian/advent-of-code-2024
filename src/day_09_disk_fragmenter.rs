@@ -18,19 +18,20 @@ pub fn run(input: &str) -> aoc::Result<String> {
 const FREE: i32 = -1;
 
 fn compact_blocks(mut blocks: Vec<i32>) -> u64 {
-    let mut free_idx = 0;
+    let mut free_pos = 0;
     loop {
-        while free_idx < blocks.len() && blocks[free_idx] != FREE {
-            free_idx += 1;
+        while free_pos < blocks.len() && blocks[free_pos] != FREE {
+            free_pos += 1;
         }
-        if free_idx == blocks.len() {
+        if free_pos == blocks.len() {
             break;
         }
-        let mut last_block = blocks.pop().unwrap();
-        while last_block == FREE {
-            last_block = blocks.pop().unwrap()
+        let mut last_block_pos = blocks.len() - 1;
+        while blocks[last_block_pos] == FREE {
+            last_block_pos -= 1;
         }
-        blocks[free_idx] = last_block;
+        blocks[free_pos] = blocks[last_block_pos];
+        blocks.truncate(last_block_pos);
     }
     checksum(&blocks)
 }
@@ -38,12 +39,12 @@ fn compact_blocks(mut blocks: Vec<i32>) -> u64 {
 fn compact_whole_files(mut blocks: Vec<i32>) -> u64 {
     let mut file_id = *blocks.last().unwrap();
     while file_id > 0 {
-        let file_idx = blocks.iter().position(|&b| b == file_id).unwrap();
-        let file_size = blocks[file_idx..]
+        let file_pos = blocks.iter().position(|&b| b == file_id).unwrap();
+        let file_size = blocks[file_pos..]
             .iter()
             .take_while(|&&b| b == file_id)
             .count();
-        let free_chunk = blocks[0..file_idx]
+        let free_chunk = blocks[0..file_pos]
             .chunk_by_mut(|a, b| a == b)
             .find(|chunk| chunk[0] == FREE && chunk.len() >= file_size);
         if let Some(free_chunk) = free_chunk {
@@ -52,7 +53,7 @@ fn compact_whole_files(mut blocks: Vec<i32>) -> u64 {
                 free_chunk[i] = file_id;
             }
             for i in 0..file_size {
-                blocks[file_idx + i] = FREE;
+                blocks[file_pos + i] = FREE;
             }
         }
         file_id -= 1;
