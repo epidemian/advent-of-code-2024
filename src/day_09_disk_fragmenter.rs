@@ -1,4 +1,5 @@
 use anyhow::Context;
+use itertools::Itertools;
 use std::iter::repeat_n;
 
 pub fn run(input: &str) -> aoc::Result<String> {
@@ -37,27 +38,32 @@ fn compact_blocks(mut blocks: Vec<i32>) -> u64 {
 }
 
 fn compact_whole_files(mut blocks: Vec<i32>) -> u64 {
-    let mut file_id = *blocks.last().unwrap();
-    while file_id > 0 {
-        let file_pos = blocks.iter().position(|&b| b == file_id).unwrap();
-        let file_size = blocks[file_pos..]
-            .iter()
-            .take_while(|&&b| b == file_id)
-            .count();
-        let free_chunk = blocks[0..file_pos]
-            .chunk_by_mut(|a, b| a == b)
-            .find(|chunk| chunk[0] == FREE && chunk.len() >= file_size);
-        if let Some(free_chunk) = free_chunk {
-            #[allow(clippy::needless_range_loop)]
-            for i in 0..file_size {
-                free_chunk[i] = file_id;
-            }
-            for i in 0..file_size {
-                blocks[file_pos + i] = FREE;
-            }
+    let mut files = vec![];
+    let mut free_spaces = vec![];
+    for (block, chunk) in &blocks.iter().enumerate().chunk_by(|(_, b)| **b) {
+        let chunk = chunk.collect_vec();
+        let chunk_info = (chunk[0].0, chunk.len());
+        if block == FREE {
+            free_spaces.push(chunk_info);
+        } else {
+            files.push(chunk_info);
         }
-        file_id -= 1;
     }
+
+    for &(file_pos, file_size) in files.iter().rev() {
+        let free_space = free_spaces
+            .iter_mut()
+            .take_while(|(pos, _)| *pos < file_pos)
+            .find(|(_, size)| *size >= file_size);
+        if let Some((free_pos, free_size)) = free_space {
+            for i in 0..file_size {
+                blocks.swap(*free_pos + i, file_pos + i);
+            }
+            *free_pos += file_size;
+            *free_size -= file_size;
+        };
+    }
+
     checksum(&blocks)
 }
 
