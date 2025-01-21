@@ -1,19 +1,12 @@
-use std::iter;
-
-use anyhow::ensure;
-use itertools::Itertools;
+use anyhow::Context;
+use std::iter::repeat_n;
 
 pub fn run(input: &str) -> aoc::Result<String> {
-    let input = input.trim();
-    ensure!(input.len() % 2 == 1, "Disk map length should be odd");
-
-    let chars = input.bytes().chain([b'0']); // Add 0 free space at the end to simplify parsing.
     let mut blocks = vec![];
-    for (file_id, (file_size, free_size)) in chars.tuples().enumerate() {
-        let file_size = (file_size - b'0') as usize;
-        let free_size = (free_size - b'0') as usize;
-        blocks.extend(iter::repeat_n(Some(file_id), file_size));
-        blocks.extend(iter::repeat_n(None, free_size));
+    for (i, ch) in input.trim().chars().enumerate() {
+        let size = ch.to_digit(10).context("Expected a digit")?;
+        let block = if i % 2 == 0 { Some(i / 2) } else { None };
+        blocks.extend(repeat_n(block, size as usize));
     }
 
     let p1_checksum = compact_blocks(blocks.clone());
