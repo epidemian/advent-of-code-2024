@@ -19,16 +19,16 @@ pub fn run(input: &str) -> aoc::Result<String> {
 const FREE: i32 = -1;
 
 fn compact_blocks(mut blocks: Vec<i32>) -> u64 {
-    let mut free_pos = 0;
-    while let Some(pos) = (free_pos..blocks.len()).find(|&i| blocks[i] == FREE) {
-        free_pos = pos;
-        let Some(last_file_pos) = (free_pos..blocks.len()).rev().find(|&i| blocks[i] != FREE)
-        else {
+    let (free_blocks, file_blocks): (Vec<_>, Vec<_>) =
+        (0..blocks.len()).partition(|&i| blocks[i] == FREE);
+
+    for (file_pos, free_pos) in file_blocks.into_iter().rev().zip(free_blocks) {
+        if file_pos < free_pos {
             break;
-        };
-        blocks[free_pos] = blocks[last_file_pos];
-        blocks.truncate(last_file_pos);
+        }
+        blocks.swap(free_pos, file_pos);
     }
+
     checksum(&blocks)
 }
 
