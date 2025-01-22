@@ -20,19 +20,14 @@ const FREE: i32 = -1;
 
 fn compact_blocks(mut blocks: Vec<i32>) -> u64 {
     let mut free_pos = 0;
-    loop {
-        while free_pos < blocks.len() && blocks[free_pos] != FREE {
-            free_pos += 1;
-        }
-        if free_pos == blocks.len() {
+    while let Some(pos) = (free_pos..blocks.len()).find(|&i| blocks[i] == FREE) {
+        free_pos = pos;
+        let Some(last_file_pos) = (free_pos..blocks.len()).rev().find(|&i| blocks[i] != FREE)
+        else {
             break;
-        }
-        let mut last_block_pos = blocks.len() - 1;
-        while blocks[last_block_pos] == FREE {
-            last_block_pos -= 1;
-        }
-        blocks[free_pos] = blocks[last_block_pos];
-        blocks.truncate(last_block_pos);
+        };
+        blocks[free_pos] = blocks[last_file_pos];
+        blocks.truncate(last_file_pos);
     }
     checksum(&blocks)
 }
@@ -76,4 +71,21 @@ fn checksum(blocks: &[i32]) -> u64 {
 fn sample_test() {
     let sample = "2333133121414131402";
     assert_eq!(run(sample).unwrap(), "1928 2858")
+}
+
+#[test]
+fn small_input_test() {
+    assert_eq!(run("").unwrap(), "0 0");
+    assert_eq!(run("0").unwrap(), "0 0");
+    assert_eq!(run("00").unwrap(), "0 0");
+}
+
+#[test]
+fn lots_of_free_space_test() {
+    assert_eq!(run("19191").unwrap(), "4 4");
+}
+
+#[test]
+fn only_free_space_test() {
+    assert_eq!(run("090").unwrap(), "0 0");
 }
