@@ -1,6 +1,6 @@
 use anyhow::Context;
 use itertools::Itertools;
-use std::collections::HashSet;
+use rustc_hash::FxHashSet as HashSet;
 
 pub fn run(input: &str) -> aoc::Result<String> {
     let (rules_part, updates_part) = input.split_once("\n\n").context("invalid input")?;

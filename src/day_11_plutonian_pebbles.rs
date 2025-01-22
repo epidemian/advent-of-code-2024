@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use rustc_hash::FxHashMap as HashMap;
 
 pub fn run(input: &str) -> aoc::Result<String> {
     let stones = aoc::parse_numbers(input)?;
@@ -10,7 +10,7 @@ pub fn run(input: &str) -> aoc::Result<String> {
 fn count_stones(stones: &[u64], blink_count: u64) -> u64 {
     let mut counts: HashMap<u64, u64> = stones.iter().map(|&s| (s, 1)).collect();
     for _ in 0..blink_count {
-        let mut new_counts = HashMap::new();
+        let mut new_counts = HashMap::default();
         for (&stone, &count) in counts.iter() {
             let mut add_stones = |stone| *new_counts.entry(stone).or_insert(0) += count;
             if stone == 0 {
