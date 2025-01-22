@@ -6,4 +6,5 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.94"
 itertools = "0.13.0"
+pathfinding = "4.13.1"
 regex = "1.11.1"

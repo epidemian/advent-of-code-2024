@@ -10,6 +10,7 @@ mod day_06_guard_gallivant;
 mod day_07_bridge_repair;
 mod day_08_resonant_collinearity;
 mod day_09_disk_fragmenter;
+mod day_10_hoof_it;
 
 fn main() -> aoc::Result<()> {
     let days = [
@@ -22,6 +23,7 @@ fn main() -> aoc::Result<()> {
         day_07_bridge_repair::run,
         day_08_resonant_collinearity::run,
         day_09_disk_fragmenter::run,
+        day_10_hoof_it::run,
     ];
 
     let run_single_day = |day_num: usize| -> aoc::Result<()> {
