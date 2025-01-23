@@ -1,7 +1,12 @@
 use itertools::Itertools;
-use std::{result, str::FromStr};
+use std::{fmt::Display, result, str::FromStr};
 
 pub type Result<T> = anyhow::Result<T>;
+pub type Answer = Result<String>;
+
+pub fn answer(p1: impl Display, p2: impl Display) -> Answer {
+    Ok(format!("{p1} {p2}"))
+}
 
 pub fn parse_numbers<T: FromStr>(s: &str) -> result::Result<Vec<T>, T::Err> {
     s.split(|ch: char| !ch.is_ascii_digit() && ch != '-')

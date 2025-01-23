@@ -1,10 +1,11 @@
 use itertools::Itertools;
 
-pub fn run(input: &str) -> aoc::Result<String> {
+pub fn run(input: &str) -> aoc::Answer {
     let reports: Vec<_> = input.lines().map(aoc::parse_numbers).try_collect()?;
-    let p1_safe_count = reports.iter().filter(|r| is_safe(r)).count();
-    let p2_safe_count = reports.iter().filter(|r| is_safe_with_dampener(r)).count();
-    Ok(format!("{p1_safe_count} {p2_safe_count}"))
+    aoc::answer(
+        reports.iter().filter(|r| is_safe(r)).count(),
+        reports.iter().filter(|r| is_safe_with_dampener(r)).count(),
+    )
 }
 
 fn is_safe(report: &[i64]) -> bool {

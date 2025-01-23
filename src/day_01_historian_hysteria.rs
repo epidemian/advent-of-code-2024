@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-pub fn run(input: &str) -> aoc::Result<String> {
+pub fn run(input: &str) -> aoc::Answer {
     let (mut left, mut right): (Vec<_>, Vec<_>) = input
         .lines()
         .map(parse_line)
@@ -17,8 +17,7 @@ pub fn run(input: &str) -> aoc::Result<String> {
         .iter()
         .map(|l| l * right.iter().filter(|&r| r == l).count() as i64)
         .sum();
-
-    Ok(format!("{total_distance} {similarity_score}"))
+    aoc::answer(total_distance, similarity_score)
 }
 
 fn parse_line(line: &str) -> aoc::Result<(i64, i64)> {

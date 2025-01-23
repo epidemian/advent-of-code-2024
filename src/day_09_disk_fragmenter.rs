@@ -2,18 +2,16 @@ use anyhow::Context;
 use itertools::Itertools;
 use std::iter::repeat_n;
 
-pub fn run(input: &str) -> aoc::Result<String> {
+pub fn run(input: &str) -> aoc::Answer {
     let mut blocks = vec![];
     for (ch, i) in input.trim().chars().zip(0..) {
         let size = ch.to_digit(10).context("Expected a digit")?;
         let block = if i % 2 == 0 { i / 2 } else { FREE };
         blocks.extend(repeat_n(block, size as usize));
     }
-
     let p1_checksum = compact_blocks(blocks.clone());
-    let p2_checksum = compact_whole_files(blocks.clone());
-
-    Ok(format!("{p1_checksum} {p2_checksum}"))
+    let p2_checksum = compact_whole_files(blocks);
+    aoc::answer(p1_checksum, p2_checksum)
 }
 
 const FREE: i32 = -1;

@@ -2,7 +2,7 @@ use anyhow::Context;
 use itertools::{iproduct, Itertools};
 use pathfinding::prelude::{bfs_reach, count_paths};
 
-pub fn run(input: &str) -> aoc::Result<String> {
+pub fn run(input: &str) -> aoc::Answer {
     let (ref map, w, h) = aoc::parse_grid(input, |ch| ch.to_digit(10).context("Invalid number"))?;
     let trailheads = iproduct!(0..w, 0..h)
         .filter(|&(x, y)| map[y][x] == 0)
@@ -34,7 +34,7 @@ pub fn run(input: &str) -> aoc::Result<String> {
         rating_sum += rating;
     }
 
-    Ok(format!("{score_sum} {rating_sum}"))
+    aoc::answer(score_sum, rating_sum)
 }
 
 #[test]

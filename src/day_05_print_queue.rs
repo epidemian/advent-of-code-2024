@@ -2,7 +2,7 @@ use anyhow::Context;
 use itertools::Itertools;
 use rustc_hash::FxHashSet as HashSet;
 
-pub fn run(input: &str) -> aoc::Result<String> {
+pub fn run(input: &str) -> aoc::Answer {
     let (rules_part, updates_part) = input.split_once("\n\n").context("invalid input")?;
     let rules: HashSet<(u32, u32)> = rules_part
         .lines()
@@ -25,7 +25,7 @@ pub fn run(input: &str) -> aoc::Result<String> {
         sums[needed_sorting as usize] += middle_page.unwrap_or(&0);
     }
 
-    Ok(format!("{} {}", sums[0], sums[1]))
+    aoc::answer(sums[0], sums[1])
 }
 
 fn fix_single_broken_rule(pages: &mut [u32], ordering_rules: &HashSet<(u32, u32)>) -> bool {

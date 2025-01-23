@@ -2,7 +2,7 @@ use anyhow::Context;
 use itertools::iproduct;
 use std::collections::HashSet;
 
-pub fn run(input: &str) -> aoc::Result<String> {
+pub fn run(input: &str) -> aoc::Answer {
     let (map, w, h) = aoc::parse_char_grid(input)?;
 
     let start_pos = iproduct!(0..w, 0..h)
@@ -11,18 +11,14 @@ pub fn run(input: &str) -> aoc::Result<String> {
 
     let guard_path = guard_walk(&map, start_pos).context("guard should exit the map on part 1")?;
     let guard_positions: HashSet<_> = guard_path.into_iter().collect();
-    let guard_positions_count = guard_positions.len();
 
-    let obstacles_count = guard_positions
-        .into_iter()
-        .filter(|&(obstacle_x, obstacle_y)| {
-            let mut map = map.clone();
-            map[obstacle_y][obstacle_x] = '#';
-            guard_walk(&map, start_pos).is_none()
-        })
-        .count();
+    let obstacles = guard_positions.iter().filter(|&&(obstacle_x, obstacle_y)| {
+        let mut map = map.clone();
+        map[obstacle_y][obstacle_x] = '#';
+        guard_walk(&map, start_pos).is_none()
+    });
 
-    Ok(format!("{guard_positions_count} {obstacles_count}"))
+    aoc::answer(guard_positions.len(), obstacles.count())
 }
 
 fn guard_walk(map: &[Vec<char>], start_pos: (usize, usize)) -> Option<Vec<(usize, usize)>> {

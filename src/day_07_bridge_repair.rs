@@ -1,7 +1,7 @@
 use anyhow::ensure;
 use itertools::Itertools;
 
-pub fn run(input: &str) -> aoc::Result<String> {
+pub fn run(input: &str) -> aoc::Answer {
     let calibration_equations: Vec<(u64, Vec<u64>)> = input
         .lines()
         .map(|line| {
@@ -18,7 +18,7 @@ pub fn run(input: &str) -> aoc::Result<String> {
             .map(|(val, _)| val)
             .sum::<u64>()
     });
-    Ok(format!("{total_p1} {total_p2}"))
+    aoc::answer(total_p1, total_p2)
 }
 
 fn can_equal(value: u64, first_op: u64, more_ops: &[u64]) -> bool {

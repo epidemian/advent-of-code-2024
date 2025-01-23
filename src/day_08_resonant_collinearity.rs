@@ -1,6 +1,6 @@
 use itertools::{chain, iproduct, Itertools};
 
-pub fn run(input: &str) -> aoc::Result<String> {
+pub fn run(input: &str) -> aoc::Answer {
     let (map, w, h) = aoc::parse_char_grid(input)?;
     let within_bounds = |&(x, y): &_| 0 <= x && x < w as i64 && 0 <= y && y < h as i64;
 
@@ -26,7 +26,7 @@ pub fn run(input: &str) -> aoc::Result<String> {
         )
     });
 
-    Ok(format!("{antinode_count_p1} {antinode_count_p2}"))
+    aoc::answer(antinode_count_p1, antinode_count_p2)
 }
 
 fn count_antinodes<I>(

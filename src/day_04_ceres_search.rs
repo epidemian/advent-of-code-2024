@@ -1,7 +1,7 @@
 use itertools::iproduct;
 use std::array;
 
-pub fn run(input: &str) -> aoc::Result<String> {
+pub fn run(input: &str) -> aoc::Answer {
     let (grid, w, h) = aoc::parse_char_grid(input)?;
 
     let xmas_count: usize = iproduct!(0..w, 0..h)
@@ -35,7 +35,7 @@ pub fn run(input: &str) -> aoc::Result<String> {
         })
         .count();
 
-    Ok(format!("{xmas_count} {x_mas_count}"))
+    aoc::answer(xmas_count, x_mas_count)
 }
 
 #[test]

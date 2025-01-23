@@ -1,9 +1,7 @@
 use regex::Regex;
 
-pub fn run(input: &str) -> aoc::Result<String> {
-    let p1_sum = run_program(input, false)?;
-    let p2_sum = run_program(input, true)?;
-    Ok(format!("{p1_sum} {p2_sum}"))
+pub fn run(input: &str) -> aoc::Answer {
+    aoc::answer(run_program(input, false)?, run_program(input, true)?)
 }
 
 fn run_program(input: &str, conditionals: bool) -> aoc::Result<u64> {
