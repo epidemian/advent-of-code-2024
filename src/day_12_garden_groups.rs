@@ -1,4 +1,5 @@
 use itertools::iproduct;
+use pathfinding::prelude::bfs_reach;
 use rustc_hash::FxHashSet as HashSet;
 
 pub fn run(input: &str) -> aoc::Answer {
@@ -23,23 +24,14 @@ type Point = (usize, usize);
 type Region = HashSet<Point>;
 const DIRS: [(isize, isize); 4] = [(0, -1), (1, 0), (0, 1), (-1, 0)];
 
-fn get_region_at(start: Point, garden: &[Vec<char>]) -> Region {
-    let mut region = HashSet::default();
-    let mut to_visit = vec![start];
-    while let Some((x, y)) = to_visit.pop() {
-        if !region.insert((x, y)) {
-            continue;
-        };
-        let plant_type = garden[y][x];
-        for d in DIRS {
-            let (nx, ny) = add_signed((x, y), d);
-            let neighbor_plant = garden.get(ny).and_then(|row| row.get(nx));
-            if neighbor_plant == Some(&plant_type) {
-                to_visit.push((nx, ny))
-            }
-        }
-    }
-    region
+fn get_region_at((x, y): Point, garden: &[Vec<char>]) -> Region {
+    let plant_type = garden[y][x];
+    bfs_reach((x, y), |&point| {
+        DIRS.into_iter()
+            .map(move |d| add_signed(point, d))
+            .filter(move |&(nx, ny)| garden.get(ny).and_then(|r| r.get(nx)) == Some(&plant_type))
+    })
+    .collect()
 }
 
 fn get_region_price(region: &Region) -> usize {
@@ -55,10 +47,10 @@ fn get_region_price(region: &Region) -> usize {
 fn get_region_bulk_price(region: &Region) -> usize {
     let count_plot_first_sides = |&point| {
         DIRS.into_iter()
+            .filter(|&d| !region.contains(&add_signed(point, d)))
             .filter(|&(dx, dy)| {
-                if region.contains(&add_signed(point, (dx, dy))) {
-                    return false;
-                }
+                // We know there'll be a fence in the direction dx,dy. We check if we're the first
+                // plot on this fence side.
                 let ortho_dir = (-dy, dx); // Rotate right.
                 let ortho_point = add_signed(point, ortho_dir);
                 !region.contains(&ortho_point)
