@@ -43,34 +43,30 @@ fn get_region_at(start: Point, garden: &[Vec<char>]) -> Region {
 }
 
 fn get_region_price(region: &Region) -> usize {
-    let mut perimeter = 0;
-    for &point in region {
-        for d in DIRS {
-            let neighbor = add_signed(point, d);
-            if !region.contains(&neighbor) {
-                perimeter += 1;
-            }
-        }
-    }
+    let count_plot_fences = |&point| {
+        DIRS.into_iter()
+            .filter(|&d| !region.contains(&add_signed(point, d)))
+            .count()
+    };
+    let perimeter: usize = region.iter().map(count_plot_fences).sum();
     region.len() * perimeter
 }
 
 fn get_region_bulk_price(region: &Region) -> usize {
-    let mut side_count = 0;
-    for &point in region {
-        for (dx, dy) in DIRS {
-            let neighbor = add_signed(point, (dx, dy));
-            if !region.contains(&neighbor) {
+    let count_plot_first_sides = |&point| {
+        DIRS.into_iter()
+            .filter(|&(dx, dy)| {
+                if region.contains(&add_signed(point, (dx, dy))) {
+                    return false;
+                }
                 let ortho_dir = (-dy, dx); // Rotate right.
                 let ortho_point = add_signed(point, ortho_dir);
-                let first_of_side = !region.contains(&ortho_point)
-                    || region.contains(&add_signed(ortho_point, (dx, dy)));
-                if first_of_side {
-                    side_count += 1;
-                }
-            }
-        }
-    }
+                !region.contains(&ortho_point)
+                    || region.contains(&add_signed(ortho_point, (dx, dy)))
+            })
+            .count()
+    };
+    let side_count: usize = region.iter().map(count_plot_first_sides).sum();
     region.len() * side_count
 }
 
