@@ -1,93 +1,81 @@
 use itertools::iproduct;
+use rustc_hash::FxHashSet as HashSet;
 
 pub fn run(input: &str) -> aoc::Answer {
     let (garden, w, h) = aoc::parse_char_grid(input)?;
 
-    let mut fence_price = 0;
-    let mut visited = vec![vec![false; w]; h];
-    for (x, y) in iproduct!(0..w, 0..h) {
-        if visited[y][x] {
-            continue;
+    let mut regions = Vec::new();
+    let mut visited = Region::default();
+    for point in iproduct!(0..w, 0..h) {
+        if !visited.contains(&point) {
+            let region = get_region_at(point, &garden);
+            visited.extend(&region);
+            regions.push(region);
         }
-        fence_price += get_region_price((x, y), &garden, &mut visited);
     }
-
-    let mut fence_bulk_price = 0;
-    let mut visited = vec![vec![false; w]; h];
-    for (x, y) in iproduct!(0..w, 0..h) {
-        if visited[y][x] {
-            continue;
-        }
-        fence_bulk_price += get_region_bulk_price((x, y), &garden, &mut visited);
-    }
-
-    aoc::answer(fence_price, fence_bulk_price)
+    aoc::answer(
+        regions.iter().map(get_region_price).sum::<usize>(),
+        regions.iter().map(get_region_bulk_price).sum::<usize>(),
+    )
 }
 
-fn get_region_price(
-    start: (usize, usize),
-    garden: &[Vec<char>],
-    visited: &mut [Vec<bool>],
-) -> usize {
+type Point = (usize, usize);
+type Region = HashSet<Point>;
+const DIRS: [(isize, isize); 4] = [(0, -1), (1, 0), (0, 1), (-1, 0)];
+
+fn get_region_at(start: Point, garden: &[Vec<char>]) -> Region {
+    let mut region = HashSet::default();
     let mut to_visit = vec![start];
-    let mut area = 0;
-    let mut perimeter = 0;
     while let Some((x, y)) = to_visit.pop() {
-        if visited[y][x] {
+        if !region.insert((x, y)) {
             continue;
-        }
-        visited[y][x] = true;
+        };
         let plant_type = garden[y][x];
-        area += 1;
-        for (dx, dy) in [(0, -1), (1, 0), (0, 1), (-1, 0)] {
-            let (nx, ny) = (x.wrapping_add_signed(dx), y.wrapping_add_signed(dy));
+        for d in DIRS {
+            let (nx, ny) = add_signed((x, y), d);
             let neighbor_plant = garden.get(ny).and_then(|row| row.get(nx));
             if neighbor_plant == Some(&plant_type) {
                 to_visit.push((nx, ny))
-            } else {
+            }
+        }
+    }
+    region
+}
+
+fn get_region_price(region: &Region) -> usize {
+    let mut perimeter = 0;
+    for &point in region {
+        for d in DIRS {
+            let neighbor = add_signed(point, d);
+            if !region.contains(&neighbor) {
                 perimeter += 1;
             }
         }
     }
-    area * perimeter
+    region.len() * perimeter
 }
 
-fn get_region_bulk_price(
-    start: (usize, usize),
-    garden: &[Vec<char>],
-    visited: &mut [Vec<bool>],
-) -> usize {
-    let mut to_visit = vec![start];
-    let mut area = 0;
+fn get_region_bulk_price(region: &Region) -> usize {
     let mut side_count = 0;
-    while let Some((x, y)) = to_visit.pop() {
-        if visited[y][x] {
-            continue;
-        }
-        visited[y][x] = true;
-        let plant_type = garden[y][x];
-        area += 1;
-        for (dx, dy) in [(0, -1), (1, 0), (0, 1), (-1, 0)] {
-            let (nx, ny) = (x.wrapping_add_signed(dx), y.wrapping_add_signed(dy));
-            let neighbor_plant = garden.get(ny).and_then(|row| row.get(nx));
-            if neighbor_plant == Some(&plant_type) {
-                to_visit.push((nx, ny))
-            } else {
-                // Rotate right.
-                let (ox, oy) = (x.wrapping_add_signed(-dy), y.wrapping_add_signed(dx));
-                let ortho_plant = garden.get(oy).and_then(|row| row.get(ox));
-                let ortho_neighbor_plant = garden
-                    .get(oy.wrapping_add_signed(dy))
-                    .and_then(|row| row.get(ox.wrapping_add_signed(dx)));
-                let first_of_side =
-                    ortho_plant != Some(&plant_type) || ortho_neighbor_plant == Some(&plant_type);
+    for &point in region {
+        for (dx, dy) in DIRS {
+            let neighbor = add_signed(point, (dx, dy));
+            if !region.contains(&neighbor) {
+                let ortho_dir = (-dy, dx); // Rotate right.
+                let ortho_point = add_signed(point, ortho_dir);
+                let first_of_side = !region.contains(&ortho_point)
+                    || region.contains(&add_signed(ortho_point, (dx, dy)));
                 if first_of_side {
                     side_count += 1;
                 }
             }
         }
     }
-    area * side_count
+    region.len() * side_count
+}
+
+fn add_signed((x, y): Point, (dx, dy): (isize, isize)) -> Point {
+    (x.wrapping_add_signed(dx), y.wrapping_add_signed(dy))
 }
 
 #[test]
