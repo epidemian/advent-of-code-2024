@@ -4,7 +4,6 @@ use rustc_hash::FxHashSet as HashSet;
 
 pub fn run(input: &str) -> aoc::Answer {
     let (garden, w, h) = aoc::parse_char_grid(input)?;
-
     let mut regions = Vec::new();
     let mut visited = Region::default();
     for point in iproduct!(0..w, 0..h) {
@@ -15,8 +14,8 @@ pub fn run(input: &str) -> aoc::Answer {
         }
     }
     aoc::answer(
-        regions.iter().map(get_region_price).sum::<usize>(),
-        regions.iter().map(get_region_bulk_price).sum::<usize>(),
+        regions.iter().map(get_fence_price).sum::<usize>(),
+        regions.iter().map(get_fence_bulk_price).sum::<usize>(),
     )
 }
 
@@ -34,7 +33,7 @@ fn get_region_at((x, y): Point, garden: &[Vec<char>]) -> Region {
     .collect()
 }
 
-fn get_region_price(region: &Region) -> usize {
+fn get_fence_price(region: &Region) -> usize {
     let count_plot_fences = |&point| {
         DIRS.into_iter()
             .filter(|&d| !region.contains(&add_signed(point, d)))
@@ -44,7 +43,7 @@ fn get_region_price(region: &Region) -> usize {
     region.len() * perimeter
 }
 
-fn get_region_bulk_price(region: &Region) -> usize {
+fn get_fence_bulk_price(region: &Region) -> usize {
     let count_plot_first_sides = |&point| {
         DIRS.into_iter()
             .filter(|&d| !region.contains(&add_signed(point, d)))
