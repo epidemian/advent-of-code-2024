@@ -2,15 +2,12 @@ use itertools::Itertools;
 
 pub fn run(input: &str) -> aoc::Answer {
     let claw_machines: Vec<_> = input.split("\n\n").map(parse_claw_machine).try_collect()?;
-    let p1_total_tokens: u64 = claw_machines
-        .iter()
-        .map(|&(a, b, p)| min_tokens(a, b, p))
-        .sum();
-    let p2_total_tokens: u64 = claw_machines
-        .iter()
-        .map(|&(a, b, (px, py))| min_tokens(a, b, (px + 10000000000000, py + 10000000000000)))
-        .sum();
-    aoc::answer(p1_total_tokens, p2_total_tokens)
+    let min_tokens_p2 =
+        |&(a, b, (px, py))| min_tokens(&(a, b, (px + 10000000000000, py + 10000000000000)));
+    aoc::answer(
+        claw_machines.iter().map(min_tokens).sum::<u64>(),
+        claw_machines.iter().map(min_tokens_p2).sum::<u64>(),
+    )
 }
 
 type Point = (i64, i64);
@@ -21,7 +18,8 @@ fn parse_claw_machine(s: &str) -> aoc::Result<(Point, Point, Point)> {
     Ok(((ax, ay), (bx, by), (price_x, price_y)))
 }
 
-fn min_tokens((ax, ay): Point, (bx, by): Point, (px, py): Point) -> u64 {
+fn min_tokens(claw_machine: &(Point, Point, Point)) -> u64 {
+    let &((ax, ay), (bx, by), (px, py)) = claw_machine;
     // We want to find the number of button presses, `a` and `b`, solving these equations:
     // a*ax + b*bx = px
     // a*ay + b*by = py
@@ -30,7 +28,7 @@ fn min_tokens((ax, ay): Point, (bx, by): Point, (px, py): Point) -> u64 {
     // b = (py * ax - px * ay) / (by * ax - bx * ay)
     let (b, b_rem) = div_mod(py * ax - px * ay, by * ax - bx * ay);
     let (a, a_rem) = div_mod(px - b * bx, ax);
-    // Key presses must be integers. Ignore non-integer solutions.
+    // Ignore non-integer solutions; key presses must be integers.
     if b_rem != 0 || a_rem != 0 {
         return 0;
     }
