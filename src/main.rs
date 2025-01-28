@@ -13,6 +13,7 @@ mod day_09_disk_fragmenter;
 mod day_10_hoof_it;
 mod day_11_plutonian_pebbles;
 mod day_12_garden_groups;
+mod day_13_claw_contraption;
 
 fn main() -> aoc::Result<()> {
     let days = [
@@ -28,6 +29,7 @@ fn main() -> aoc::Result<()> {
         day_10_hoof_it::run,
         day_11_plutonian_pebbles::run,
         day_12_garden_groups::run,
+        day_13_claw_contraption::run,
     ];
 
     let run_single_day = |day_num: usize| -> aoc::Result<()> {
