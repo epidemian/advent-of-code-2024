@@ -1,13 +1,12 @@
+use anyhow::bail;
 use itertools::Itertools;
-use std::collections::HashSet;
+use regex::bytes::Regex;
 
 pub fn run(input: &str) -> aoc::Answer {
     let robots = parse_robots(input)?;
     aoc::answer(
         get_safety_factor(&robots, 101, 103),
-        // The easter egg position was found by running `print_steps(&robots)` and then grepping the
-        // output for "xxxxxxxx".
-        8270,
+        find_easter_egg(&robots, 101, 103)?,
     )
 }
 
@@ -40,31 +39,21 @@ fn robot_position_after(robot: &(Point, Point), seconds: i64, width: i64, height
     (final_x, final_y)
 }
 
-#[allow(dead_code)]
-fn print_steps(robots: &[(Point, Point)]) {
-    let w = 101;
-    let h = 103;
-    for seconds in 1..10_000 {
-        let positions: &HashSet<Point> = &robots
-            .iter()
-            .map(|r| robot_position_after(r, seconds, w, h))
-            .collect();
-
-        let grid: String = (0..h)
-            .flat_map(|y| {
-                (0..w)
-                    .map(move |x| {
-                        if positions.contains(&(x, y)) {
-                            'x'
-                        } else {
-                            '.'
-                        }
-                    })
-                    .chain(['\n'])
-            })
-            .collect();
-        println!("after {seconds}s\n{grid}\n");
+fn find_easter_egg(robots: &[(Point, Point)], width: i64, height: i64) -> aoc::Result<i64> {
+    let line_re = Regex::new(r"xxxxxxxx").unwrap();
+    let empty_room = vec![vec![b' '; width as usize]; height as usize];
+    const N: i64 = 1_000_000;
+    for seconds in 1..N {
+        let mut room = empty_room.clone();
+        for robot in robots {
+            let (x, y) = robot_position_after(robot, seconds, width, height);
+            room[y as usize][x as usize] = b'x'
+        }
+        if room.iter().any(|line| line_re.is_match(line)) {
+            return Ok(seconds);
+        }
     }
+    bail!("Easter egg not found after simulating {N} seconds")
 }
 
 #[test]
