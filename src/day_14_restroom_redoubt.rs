@@ -41,15 +41,16 @@ fn robot_position_after(robot: &(Point, Point), seconds: i64, width: i64, height
 
 fn find_easter_egg(robots: &[(Point, Point)], width: i64, height: i64) -> aoc::Result<i64> {
     let line_re = Regex::new(r"xxxxxxxx").unwrap();
-    let empty_room = vec![vec![b' '; width as usize]; height as usize];
     const N: i64 = 1_000_000;
+    let empty_room: Vec<u8> = vec![b' '; (width * height) as usize];
+    let mut room = empty_room.clone();
     for seconds in 1..N {
-        let mut room = empty_room.clone();
+        room.copy_from_slice(&empty_room);
         for robot in robots {
             let (x, y) = robot_position_after(robot, seconds, width, height);
-            room[y as usize][x as usize] = b'x'
+            room[(y * width + x) as usize] = b'x'
         }
-        if room.iter().any(|line| line_re.is_match(line)) {
+        if line_re.is_match(&room) {
             return Ok(seconds);
         }
     }
