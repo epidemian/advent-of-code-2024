@@ -40,21 +40,54 @@ fn robot_position_after(robot: &(Point, Point), seconds: i64, width: i64, height
 }
 
 fn find_easter_egg(robots: &[(Point, Point)], width: i64, height: i64) -> aoc::Result<i64> {
-    let line_re = Regex::new(r"xxxxxxxx").unwrap();
-    const N: i64 = 1_000_000;
-    let empty_room: Vec<u8> = vec![b' '; (width * height) as usize];
-    let mut room = empty_room.clone();
-    for seconds in 1..N {
-        room.copy_from_slice(&empty_room);
+    let easter_egg_lines = [
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "x                             x",
+        "x                             x",
+        "x                             x",
+        "x                             x",
+        "x              x              x",
+        "x             xxx             x",
+        "x            xxxxx            x",
+        "x           xxxxxxx           x",
+        "x          xxxxxxxxx          x",
+        "x            xxxxx            x",
+        "x           xxxxxxx           x",
+        "x          xxxxxxxxx          x",
+        "x         xxxxxxxxxxx         x",
+        "x        xxxxxxxxxxxxx        x",
+        "x          xxxxxxxxx          x",
+        "x         xxxxxxxxxxx         x",
+        "x        xxxxxxxxxxxxx        x",
+        "x       xxxxxxxxxxxxxxx       x",
+        "x      xxxxxxxxxxxxxxxxx      x",
+        "x        xxxxxxxxxxxxx        x",
+        "x       xxxxxxxxxxxxxxx       x",
+        "x      xxxxxxxxxxxxxxxxx      x",
+        "x     xxxxxxxxxxxxxxxxxxx     x",
+        "x    xxxxxxxxxxxxxxxxxxxxx    x",
+        "x             xxx             x",
+        "x             xxx             x",
+        "x             xxx             x",
+        "x                             x",
+        "x                             x",
+        "x                             x",
+        "x                             x",
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    ];
+    let easter_egg_re = Regex::new(&easter_egg_lines.join(".*")).unwrap();
+    let mut room = vec![b' '; (width * height) as usize];
+    for seconds in 1..1_000_000 {
+        room.fill(b' ');
         for robot in robots {
             let (x, y) = robot_position_after(robot, seconds, width, height);
             room[(y * width + x) as usize] = b'x'
         }
-        if line_re.is_match(&room) {
+        if easter_egg_re.is_match(&room) {
             return Ok(seconds);
         }
     }
-    bail!("Easter egg not found after simulating {N} seconds")
+    bail!("Easter egg not found")
 }
 
 #[test]
