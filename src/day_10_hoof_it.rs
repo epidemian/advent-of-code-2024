@@ -34,7 +34,7 @@ pub fn run(input: &str) -> aoc::Answer {
         rating_sum += rating;
     }
 
-    aoc::answer(score_sum, rating_sum)
+    aoc::answers(score_sum, rating_sum)
 }
 
 #[test]

@@ -18,7 +18,7 @@ pub fn run(input: &str) -> aoc::Answer {
             .map(|(val, _)| val)
             .sum::<u64>()
     });
-    aoc::answer(total_p1, total_p2)
+    aoc::answers(total_p1, total_p2)
 }
 
 fn can_equal(value: u64, first_op: u64, more_ops: &[u64]) -> bool {

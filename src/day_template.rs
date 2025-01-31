@@ -1,9 +1,9 @@
 pub fn run(input: &str) -> aoc::Answer {
-    aoc::answer("to", "do")
+    aoc::answer("xxx")
 }
 
 #[test]
 fn sample_test() {
     let sample = "";
-    assert_eq!(run(sample).unwrap(), "to do")
+    assert_eq!(run(sample).unwrap(), "xxx")
 }

@@ -1,7 +1,7 @@
 use regex::Regex;
 
 pub fn run(input: &str) -> aoc::Answer {
-    aoc::answer(run_program(input, false)?, run_program(input, true)?)
+    aoc::answers(run_program(input, false)?, run_program(input, true)?)
 }
 
 fn run_program(input: &str, conditionals: bool) -> aoc::Result<u64> {

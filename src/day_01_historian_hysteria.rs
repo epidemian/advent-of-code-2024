@@ -17,7 +17,7 @@ pub fn run(input: &str) -> aoc::Answer {
         .iter()
         .map(|l| l * right.iter().filter(|&r| r == l).count() as i64)
         .sum();
-    aoc::answer(total_distance, similarity_score)
+    aoc::answers(total_distance, similarity_score)
 }
 
 fn parse_line(line: &str) -> aoc::Result<(i64, i64)> {

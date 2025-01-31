@@ -4,8 +4,12 @@ use std::{fmt::Display, result, str::FromStr};
 pub type Result<T> = anyhow::Result<T>;
 pub type Answer = Result<String>;
 
-pub fn answer(p1: impl Display, p2: impl Display) -> Answer {
+pub fn answers(p1: impl Display, p2: impl Display) -> Answer {
     Ok(format!("{p1} {p2}"))
+}
+
+pub fn answer(ans: impl Display) -> Answer {
+    Ok(format!("{ans}"))
 }
 
 pub fn parse_numbers<T: FromStr>(s: &str) -> result::Result<Vec<T>, T::Err> {

@@ -35,7 +35,7 @@ pub fn run(input: &str) -> aoc::Answer {
         })
         .count();
 
-    aoc::answer(xmas_count, x_mas_count)
+    aoc::answers(xmas_count, x_mas_count)
 }
 
 #[test]

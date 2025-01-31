@@ -2,7 +2,7 @@ use itertools::Itertools;
 
 pub fn run(input: &str) -> aoc::Answer {
     let reports: Vec<_> = input.lines().map(aoc::parse_numbers).try_collect()?;
-    aoc::answer(
+    aoc::answers(
         reports.iter().filter(|r| is_safe(r)).count(),
         reports.iter().filter(|r| is_safe_with_dampener(r)).count(),
     )

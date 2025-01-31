@@ -2,7 +2,7 @@ use rustc_hash::FxHashMap as HashMap;
 
 pub fn run(input: &str) -> aoc::Answer {
     let stones = aoc::parse_numbers(input)?;
-    aoc::answer(count_stones(&stones, 25), count_stones(&stones, 75))
+    aoc::answers(count_stones(&stones, 25), count_stones(&stones, 75))
 }
 
 fn count_stones(stones: &[u64], blink_count: u64) -> u64 {

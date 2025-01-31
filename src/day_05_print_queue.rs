@@ -25,7 +25,7 @@ pub fn run(input: &str) -> aoc::Answer {
         sums[needed_sorting as usize] += middle_page.unwrap_or(&0);
     }
 
-    aoc::answer(sums[0], sums[1])
+    aoc::answers(sums[0], sums[1])
 }
 
 fn fix_single_broken_rule(pages: &mut [u32], ordering_rules: &HashSet<(u32, u32)>) -> bool {

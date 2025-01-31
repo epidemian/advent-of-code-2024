@@ -26,7 +26,7 @@ pub fn run(input: &str) -> aoc::Answer {
         )
     });
 
-    aoc::answer(antinode_count_p1, antinode_count_p2)
+    aoc::answers(antinode_count_p1, antinode_count_p2)
 }
 
 fn count_antinodes<I>(

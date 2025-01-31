@@ -13,7 +13,7 @@ pub fn run(input: &str) -> aoc::Answer {
             regions.push(region);
         }
     }
-    aoc::answer(
+    aoc::answers(
         regions.iter().map(get_fence_price).sum::<usize>(),
         regions.iter().map(get_fence_bulk_price).sum::<usize>(),
     )

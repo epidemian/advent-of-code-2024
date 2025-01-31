@@ -4,7 +4,7 @@ use regex::bytes::Regex;
 
 pub fn run(input: &str) -> aoc::Answer {
     let robots = parse_robots(input)?;
-    aoc::answer(
+    aoc::answers(
         get_safety_factor(&robots, 101, 103),
         find_easter_egg(&robots, 101, 103)?,
     )

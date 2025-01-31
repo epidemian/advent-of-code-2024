@@ -11,7 +11,7 @@ pub fn run(input: &str) -> aoc::Answer {
     }
     let p1_checksum = compact_blocks(blocks.clone());
     let p2_checksum = compact_whole_files(blocks);
-    aoc::answer(p1_checksum, p2_checksum)
+    aoc::answers(p1_checksum, p2_checksum)
 }
 
 const FREE: i32 = -1;

@@ -18,7 +18,7 @@ pub fn run(input: &str) -> aoc::Answer {
         guard_walk(&map, start_pos).is_none()
     });
 
-    aoc::answer(guard_positions.len(), obstacles.count())
+    aoc::answers(guard_positions.len(), obstacles.count())
 }
 
 fn guard_walk(map: &[Vec<char>], start_pos: (usize, usize)) -> Option<Vec<(usize, usize)>> {

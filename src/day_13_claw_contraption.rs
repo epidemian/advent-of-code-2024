@@ -4,7 +4,7 @@ pub fn run(input: &str) -> aoc::Answer {
     let claw_machines: Vec<_> = input.split("\n\n").map(parse_claw_machine).try_collect()?;
     let min_tokens_p2 =
         |&(a, b, (px, py))| min_tokens(&(a, b, (px + 10000000000000, py + 10000000000000)));
-    aoc::answer(
+    aoc::answers(
         claw_machines.iter().map(min_tokens).sum::<u64>(),
         claw_machines.iter().map(min_tokens_p2).sum::<u64>(),
     )
