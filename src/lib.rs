@@ -36,3 +36,12 @@ pub fn parse_grid<T>(
 
     Ok((grid, width, height))
 }
+
+pub fn grid_to_str(grid: &[Vec<char>]) -> String {
+    let mut s = String::new();
+    for row in grid {
+        s.extend(row);
+        s.push('\n');
+    }
+    s
+}
