@@ -1,5 +1,6 @@
 use anyhow::Context;
 use itertools::iproduct;
+use pathfinding::prelude::bfs_reach;
 
 pub fn run(input: &str) -> aoc::Answer {
     let (map, instructions) = input.split_once("\n\n").context("Invalid input")?;
@@ -39,12 +40,24 @@ fn run_robot(
             '<' => (-1, 0),
             _ => continue,
         };
-        let mut moves = vec![];
-        if collect_moves((x, y), (dx, dy), &map, &mut moves) {
-            for &(_, x, y) in &moves {
+        let things_to_move: Vec<_> = bfs_reach((x, y), |&pos| {
+            let (x2, y2) = add_signed(pos, (dx, dy));
+            let ch = map.get(y2).and_then(|r| r.get(x2));
+            match ch {
+                None | Some('.') => vec![],
+                Some('[') => vec![(x2, y2), (x2 + 1, y2)],
+                Some(']') => vec![(x2 - 1, y2), (x2, y2)],
+                Some(_) => vec![(x2, y2)],
+            }
+        })
+        .map(|(x, y)| (map[y][x], x, y))
+        .collect();
+        let pushing_wall = things_to_move.iter().any(|&(ch, ..)| ch == '#');
+        if !pushing_wall {
+            for &(_, x, y) in &things_to_move {
                 map[y][x] = '.';
             }
-            for &(ch, x, y) in &moves {
+            for &(ch, x, y) in &things_to_move {
                 let (new_x, new_y) = add_signed((x, y), (dx, dy));
                 map[new_y][new_x] = ch;
             }
@@ -55,36 +68,6 @@ fn run_robot(
         .filter(|&(x, y)| map[y][x] == 'O' || map[y][x] == '[')
         .map(|(x, y)| y * 100 + x);
     Ok(box_coords.sum())
-}
-
-fn collect_moves(
-    (x, y): (usize, usize),
-    dir: (isize, isize),
-    map: &[Vec<char>],
-    moves: &mut Vec<(char, usize, usize)>,
-) -> bool {
-    let ch = map[y][x];
-    match ch {
-        '@' | 'O' => {
-            moves.push((ch, x, y));
-            collect_moves(add_signed((x, y), dir), dir, map, moves)
-        }
-        '#' => false,
-        '[' | ']' => {
-            if dir.0 != 0 {
-                moves.push((ch, x, y));
-                collect_moves(add_signed((x, y), dir), dir, map, moves)
-            } else {
-                let lx = if ch == '[' { x } else { x - 1 };
-                moves.push(('[', lx, y));
-                moves.push((']', lx + 1, y));
-                let new_l = add_signed((lx, y), dir);
-                let new_r = add_signed((lx + 1, y), dir);
-                collect_moves(new_l, dir, map, moves) && collect_moves(new_r, dir, map, moves)
-            }
-        }
-        _ => true,
-    }
 }
 
 fn add_signed((x, y): (usize, usize), (dx, dy): (isize, isize)) -> (usize, usize) {
