@@ -16,6 +16,7 @@ mod day_12_garden_groups;
 mod day_13_claw_contraption;
 mod day_14_restroom_redoubt;
 mod day_15_warehouse_woes;
+mod day_16_reindeer_maze;
 
 fn main() -> aoc::Result<()> {
     let days = [
@@ -34,6 +35,7 @@ fn main() -> aoc::Result<()> {
         day_13_claw_contraption::run,
         day_14_restroom_redoubt::run,
         day_15_warehouse_woes::run,
+        day_16_reindeer_maze::run,
     ];
 
     let run_single_day = |day_num: usize| -> aoc::Result<()> {
