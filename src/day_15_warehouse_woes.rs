@@ -1,6 +1,5 @@
 use anyhow::Context;
-use itertools::{iproduct, Itertools};
-use rustc_hash::FxHashSet as HashSet;
+use itertools::iproduct;
 
 pub fn run(input: &str) -> aoc::Answer {
     let (map, instructions) = input.split_once("\n\n").context("Invalid input")?;
@@ -40,18 +39,16 @@ fn run_robot(
             '<' => (-1, 0),
             _ => continue,
         };
-        let mut moves = HashSet::default();
+        let mut moves = vec![];
         if collect_moves((x, y), (dx, dy), &map, &mut moves) {
-            let sorted_moves = moves
-                .into_iter()
-                // Move things in order opposite to the direction of movement.
-                .sorted_by_key(|&(x, y)| (x as isize * -dx, y as isize * -dy));
-            for (x, y) in sorted_moves {
-                let (new_x, new_y) = add_signed((x, y), (dx, dy));
-                map[new_y][new_x] = map[y][x];
+            for &(_, x, y) in &moves {
                 map[y][x] = '.';
             }
-            (x, y) = (x.wrapping_add_signed(dx), y.wrapping_add_signed(dy));
+            for &(ch, x, y) in &moves {
+                let (new_x, new_y) = add_signed((x, y), (dx, dy));
+                map[new_y][new_x] = ch;
+            }
+            (x, y) = add_signed((x, y), (dx, dy));
         };
     }
     let box_coords = iproduct!(0..width, 0..height)
@@ -64,23 +61,23 @@ fn collect_moves(
     (x, y): (usize, usize),
     dir: (isize, isize),
     map: &[Vec<char>],
-    moves: &mut HashSet<(usize, usize)>,
+    moves: &mut Vec<(char, usize, usize)>,
 ) -> bool {
     let ch = map[y][x];
     match ch {
         '@' | 'O' => {
-            moves.insert((x, y));
+            moves.push((ch, x, y));
             collect_moves(add_signed((x, y), dir), dir, map, moves)
         }
         '#' => false,
         '[' | ']' => {
             if dir.0 != 0 {
-                moves.insert((x, y));
+                moves.push((ch, x, y));
                 collect_moves(add_signed((x, y), dir), dir, map, moves)
             } else {
                 let lx = if ch == '[' { x } else { x - 1 };
-                moves.insert((lx, y));
-                moves.insert((lx + 1, y));
+                moves.push(('[', lx, y));
+                moves.push((']', lx + 1, y));
                 let new_l = add_signed((lx, y), dir);
                 let new_r = add_signed((lx + 1, y), dir);
                 collect_moves(new_l, dir, map, moves) && collect_moves(new_r, dir, map, moves)
