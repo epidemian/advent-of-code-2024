@@ -3,14 +3,14 @@ use itertools::Itertools;
 use rustc_hash::FxHashSet as HashSet;
 
 pub fn run(input: &str) -> aoc::Answer {
-    let (rules_part, updates_part) = input.split_once("\n\n").context("invalid input")?;
+    let (rules_part, updates_part) = input.split_once("\n\n").context("Invalid input")?;
     let rules: HashSet<(u32, u32)> = rules_part
         .lines()
         .map(|line| {
             aoc::parse_numbers(line)?
                 .into_iter()
                 .collect_tuple()
-                .context("expected two numbers")
+                .context("Expected two numbers")
         })
         .try_collect()?;
 

@@ -7,9 +7,9 @@ pub fn run(input: &str) -> aoc::Answer {
 
     let start_pos = iproduct!(0..w, 0..h)
         .find(|&(x, y)| map[y][x] == '^')
-        .context("guard not found")?;
+        .context("Guard not found")?;
 
-    let guard_path = guard_walk(&map, start_pos).context("guard should exit the map on part 1")?;
+    let guard_path = guard_walk(&map, start_pos).context("Guard should exit the map on part 1")?;
     let guard_positions: HashSet<_> = guard_path.into_iter().collect();
 
     let obstacles = guard_positions.iter().filter(|&&(obstacle_x, obstacle_y)| {
@@ -45,8 +45,8 @@ fn guard_walk(map: &[Vec<char>], start_pos: (usize, usize)) -> Option<Vec<(usize
 
 #[test]
 fn no_guard_test() {
-    assert_eq!(run("").unwrap_err().to_string(), "guard not found");
-    assert_eq!(run(".").unwrap_err().to_string(), "guard not found");
+    assert_eq!(run("").unwrap_err().to_string(), "Guard not found");
+    assert_eq!(run(".").unwrap_err().to_string(), "Guard not found");
 }
 
 #[test]
