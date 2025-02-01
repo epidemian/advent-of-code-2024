@@ -1,5 +1,6 @@
 use anyhow::Context;
-use itertools::iproduct;
+use itertools::{iproduct, Itertools};
+use rustc_hash::FxHashSet as HashSet;
 
 pub fn run(input: &str) -> aoc::Answer {
     let (map, instructions) = input.split_once("\n\n").context("Invalid input")?;
@@ -39,64 +40,53 @@ fn run_robot(
             '<' => (-1, 0),
             _ => continue,
         };
-        if can_move((x, y), (dx, dy), &map) {
-            push_boxes((x, y), (dx, dy), &mut map);
+        let mut moves = HashSet::default();
+        if collect_moves((x, y), (dx, dy), &map, &mut moves) {
+            let sorted_moves = moves
+                .into_iter()
+                // Move things in order opposite to the direction of movement.
+                .sorted_by_key(|&(x, y)| (x as isize * -dx, y as isize * -dy));
+            for (x, y) in sorted_moves {
+                let (new_x, new_y) = add_signed((x, y), (dx, dy));
+                map[new_y][new_x] = map[y][x];
+                map[y][x] = '.';
+            }
             (x, y) = (x.wrapping_add_signed(dx), y.wrapping_add_signed(dy));
         };
     }
-    let gps_sum: usize = iproduct!(0..width, 0..height)
+    let box_coords = iproduct!(0..width, 0..height)
         .filter(|&(x, y)| map[y][x] == 'O' || map[y][x] == '[')
-        .map(|(x, y)| y * 100 + x)
-        .sum();
-    Ok(gps_sum)
+        .map(|(x, y)| y * 100 + x);
+    Ok(box_coords.sum())
 }
 
-fn can_move((x, y): (usize, usize), dir: (isize, isize), map: &[Vec<char>]) -> bool {
-    let ch = map[y][x];
-    match ch {
-        '@' | 'O' => can_move(add_signed((x, y), dir), dir, map),
-        '#' => false,
-        '[' | ']' => {
-            if dir.0 != 0 {
-                can_move(add_signed((x, y), dir), dir, map)
-            } else {
-                let lx = if ch == '[' { x } else { x - 1 };
-                let new_l = add_signed((lx, y), dir);
-                let new_r = add_signed((lx + 1, y), dir);
-                can_move(new_l, dir, map) && can_move(new_r, dir, map)
-            }
-        }
-        _ => true,
-    }
-}
-
-fn push_boxes((x, y): (usize, usize), dir: (isize, isize), map: &mut [Vec<char>]) {
+fn collect_moves(
+    (x, y): (usize, usize),
+    dir: (isize, isize),
+    map: &[Vec<char>],
+    moves: &mut HashSet<(usize, usize)>,
+) -> bool {
     let ch = map[y][x];
     match ch {
         '@' | 'O' => {
-            let (new_x, new_y) = add_signed((x, y), dir);
-            push_boxes((new_x, new_y), dir, map);
-            map[new_y][new_x] = ch;
-            map[y][x] = '.';
+            moves.insert((x, y));
+            collect_moves(add_signed((x, y), dir), dir, map, moves)
         }
+        '#' => false,
         '[' | ']' => {
-            let lx = if ch == '[' { x } else { x - 1 };
-            let (new_lx, new_ly) = add_signed((lx, y), dir);
-            let (new_rx, new_ry) = add_signed((lx + 1, y), dir);
             if dir.0 != 0 {
-                let new_x = if dir.0 == 1 { new_rx } else { new_lx };
-                push_boxes((new_x, y), dir, map);
+                moves.insert((x, y));
+                collect_moves(add_signed((x, y), dir), dir, map, moves)
             } else {
-                push_boxes((new_lx, new_ly), dir, map);
-                push_boxes((new_rx, new_ry), dir, map);
+                let lx = if ch == '[' { x } else { x - 1 };
+                moves.insert((lx, y));
+                moves.insert((lx + 1, y));
+                let new_l = add_signed((lx, y), dir);
+                let new_r = add_signed((lx + 1, y), dir);
+                collect_moves(new_l, dir, map, moves) && collect_moves(new_r, dir, map, moves)
             }
-            map[y][lx] = '.';
-            map[y][lx + 1] = '.';
-            map[new_ly][new_lx] = '[';
-            map[new_ry][new_rx] = ']';
         }
-        '#' => panic!("Tried to push boxes into wall!"),
-        _ => {}
+        _ => true,
     }
 }
 
