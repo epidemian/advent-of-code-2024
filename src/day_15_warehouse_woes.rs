@@ -34,10 +34,8 @@ fn widen_map(map: &Map) -> Map {
 }
 
 fn run_robot(mut map: Map, instructions: &str) -> aoc::Result<isize> {
-    let (&(mut x, mut y), _) = map
-        .iter()
-        .find(|&(_, &ch)| ch == '@')
-        .context("Robot not found")?;
+    let robot = map.iter().find_map(|(pos, &ch)| (ch == '@').then_some(pos));
+    let &(mut bot_x, mut bot_y) = robot.context("Robot not found")?;
     for ins in instructions.chars() {
         let (dx, dy) = match ins {
             '^' => (0, -1),
@@ -46,7 +44,7 @@ fn run_robot(mut map: Map, instructions: &str) -> aoc::Result<isize> {
             '<' => (-1, 0),
             _ => continue,
         };
-        let things_to_move: Vec<_> = bfs_reach((x, y), |&(x, y)| {
+        let things_to_move: Vec<_> = bfs_reach((bot_x, bot_y), |&(x, y)| {
             let (x2, y2) = (x + dx, y + dy);
             match map.get(&(x2, y2)) {
                 None => vec![],
@@ -57,7 +55,7 @@ fn run_robot(mut map: Map, instructions: &str) -> aoc::Result<isize> {
         })
         .map(|pos| (map[&pos], pos))
         .collect();
-        let pushing_wall = things_to_move.iter().any(|&(ch, ..)| ch == '#');
+        let pushing_wall = things_to_move.iter().any(|&(ch, _)| ch == '#');
         if !pushing_wall {
             for &(_, pos) in &things_to_move {
                 map.remove(&pos);
@@ -66,11 +64,29 @@ fn run_robot(mut map: Map, instructions: &str) -> aoc::Result<isize> {
                 let (new_x, new_y) = (x + dx, y + dy);
                 map.insert((new_x, new_y), ch);
             }
-            (x, y) = (x + dx, y + dy);
+            (bot_x, bot_y) = (bot_x + dx, bot_y + dy);
         };
     }
     let boxes = map.iter().filter(|&(_, &ch)| ch == 'O' || ch == '[');
     Ok(boxes.map(|((x, y), _)| y * 100 + x).sum())
+}
+
+#[test]
+fn no_robot_test() {
+    assert_eq!(run("\n\n").unwrap_err().to_string(), "Robot not found");
+    assert_eq!(run("..\n\n").unwrap_err().to_string(), "Robot not found");
+}
+
+#[test]
+fn bad_map_test() {
+    let input = "#####
+#...#
+#.@O.
+#...#
+#####
+
+>>>>>";
+    assert!(run(input).is_ok())
 }
 
 #[test]
@@ -98,16 +114,4 @@ vvv<<^>^v^^><<>>><>^<<><^vv^^<>vvv<>><^^v>^>vv<>v<<<<v<^v>^<^^>>>^<v<v
 v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^
 ";
     assert_eq!(run(sample).unwrap(), "10092 9021")
-}
-
-#[test]
-fn bad_map_test() {
-    let input = "#####
-#...#
-#.@O.
-#...#
-#####
-
->>>>>";
-    assert!(run(input).is_ok())
 }
