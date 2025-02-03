@@ -10,13 +10,12 @@ pub fn run(input: &str) -> aoc::Answer {
         .into_group_map();
     let antenna_groups = antennas_by_freq.into_values().collect_vec();
 
-    let antinode_count_p1 = count_antinodes(&antenna_groups, |(x1, y1), (x2, y2)| {
+    let get_antinode_pair = |(x1, y1), (x2, y2)| {
         let (dx, dy) = (x1 - x2, y1 - y2);
         let antinode_pair = [(x1 + dx, y1 + dy), (x2 - dx, y2 - dy)];
         antinode_pair.into_iter().filter(within_bounds)
-    });
-
-    let antinode_count_p2 = count_antinodes(&antenna_groups, |(x1, y1), (x2, y2)| {
+    };
+    let get_antinode_line = |(x1, y1), (x2, y2)| {
         let (dx, dy) = (x1 - x2, y1 - y2);
         let line_1 = (0..).map(move |i| (x1 + dx * i, y1 + dy * i));
         let line_2 = (0..).map(move |i| (x2 - dx * i, y2 - dy * i));
@@ -24,9 +23,11 @@ pub fn run(input: &str) -> aoc::Answer {
             line_1.take_while(within_bounds),
             line_2.take_while(within_bounds),
         )
-    });
-
-    aoc::answers(antinode_count_p1, antinode_count_p2)
+    };
+    aoc::answers(
+        count_antinodes(&antenna_groups, get_antinode_pair),
+        count_antinodes(&antenna_groups, get_antinode_line),
+    )
 }
 
 fn count_antinodes<I>(
