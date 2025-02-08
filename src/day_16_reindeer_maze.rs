@@ -1,6 +1,7 @@
 use anyhow::Context;
-use itertools::{iproduct, Itertools};
-use pathfinding::{directed::dijkstra::dijkstra, prelude::dijkstra_reach};
+use itertools::iproduct;
+use pathfinding::prelude::{build_path, dijkstra_partial};
+use rustc_hash::FxHashSet as HashSet;
 
 pub fn run(input: &str) -> aoc::Answer {
     let (maze, w, h) = aoc::parse_char_grid(input)?;
@@ -18,30 +19,37 @@ pub fn run(input: &str) -> aoc::Answer {
         .into_iter()
         .filter(|&(((x, y), _), _)| maze[y][x] != '#')
     };
-    let (_, best_score) = dijkstra(&start, successors, |&((x, y), _)| maze[y][x] == 'E')
-        .context("Path to end not found")?;
 
-    let possible_tiles: Vec<_> = dijkstra_reach(&start, |node, _cost| successors(node))
-        .take_while(|node| node.total_cost <= best_score)
-        .collect();
+    let (parents, end) = dijkstra_partial(&start, successors, |&((x, y), _)| maze[y][x] == 'E');
+    let end = end.context("Path to end not found")?;
+    let best_score = parents[&end].1;
 
-    let mut count = 0;
-    let total = possible_tiles.len();
-    let best_path_tile_count = possible_tiles
-        .into_iter()
-        .filter(|node| {
-            let (_, cost) =
-                dijkstra(&node.node, successors, |&((x, y), _)| maze[y][x] == 'E').unwrap();
-            count += 1;
-            if count % 100 == 0 {
-                eprintln!("{count}/{total} processed");
+    let mut best_paths_nodes = HashSet::from_iter(build_path(&end, &parents));
+    loop {
+        let join_node = parents.iter().find_map(|(node, (_parent, node_cost))| {
+            if best_paths_nodes.contains(node) {
+                return None;
             }
-            cost + node.total_cost == best_score
-        })
-        .map(|node| node.node.0)
-        .unique()
-        .count();
-    aoc::answers(best_score, best_path_tile_count)
+            for (succ_node, succ_cost) in successors(node) {
+                if best_paths_nodes.contains(&succ_node) && succ_node != start {
+                    let best_path_cost = parents[&succ_node].1;
+                    if node_cost + succ_cost == best_path_cost {
+                        // `node` joins the best path and it's also part of a best path.
+                        return Some(node);
+                    }
+                }
+            }
+            None
+        });
+        if let Some(node) = join_node {
+            best_paths_nodes.extend(build_path(node, &parents));
+        } else {
+            break;
+        }
+    }
+
+    let best_paths_tiles: HashSet<_> = best_paths_nodes.into_iter().map(|(pos, _)| pos).collect();
+    aoc::answers(best_score, best_paths_tiles.len())
 }
 
 #[test]
