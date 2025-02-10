@@ -25,26 +25,17 @@ pub fn run(input: &str) -> aoc::Answer {
 
     let mut best_paths_nodes = HashSet::from_iter(build_path(&end, &parents));
     loop {
-        let join_node = parents.iter().find_map(|(node, (_parent, node_cost))| {
-            if best_paths_nodes.contains(node) {
-                return None;
-            }
-            for (succ_node, succ_cost) in successors(node) {
-                if best_paths_nodes.contains(&succ_node) && succ_node != start {
-                    let best_path_cost = parents[&succ_node].1;
-                    if node_cost + succ_cost == best_path_cost {
-                        // `node` joins the best path and it's also part of a best path.
-                        return Some(node);
-                    }
-                }
-            }
-            None
+        let join_node = parents.iter().find(|(node, (_parent, node_cost))| {
+            !best_paths_nodes.contains(node)
+                && successors(node).any(|(succ_node, succ_cost)| {
+                    // `node` joins a best path with same cost, so it's also part of a best path.
+                    best_paths_nodes.contains(&succ_node)
+                        && succ_node != start
+                        && node_cost + succ_cost == parents[&succ_node].1
+                })
         });
-        if let Some(node) = join_node {
-            best_paths_nodes.extend(build_path(node, &parents));
-        } else {
-            break;
-        }
+        let Some((node, _)) = join_node else { break };
+        best_paths_nodes.extend(build_path(node, &parents));
     }
     let best_paths_tiles: HashSet<_> = best_paths_nodes.iter().map(|&(x, y, ..)| (x, y)).collect();
 
