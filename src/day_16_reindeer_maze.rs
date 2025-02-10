@@ -5,21 +5,23 @@ use rustc_hash::FxHashSet as HashSet;
 
 pub fn run(input: &str) -> aoc::Answer {
     let (maze, w, h) = aoc::parse_char_grid(input)?;
-    let (start_x, start_y) = iproduct!(0..w, 0..h)
+    let start_pos = iproduct!(0..w, 0..h)
         .find(|&(x, y)| maze[y][x] == 'S')
         .context("Start not found")?;
     let dirs = [(1, 0), (0, 1), (-1, 0), (0, -1)];
-    let start = (start_x, start_y, 0);
-    let successors = |&(x, y, d): &(usize, usize, usize)| {
-        let (dx, dy) = dirs[d];
-        let forwards = (x.wrapping_add_signed(dx), y.wrapping_add_signed(dy), d);
-        let rot_r = (x, y, (d + 1) % 4);
-        let rot_l = (x, y, (d + 3) % 4);
-        [(forwards, 1), (rot_r, 1000), (rot_l, 1000)]
+    let start = (start_pos, 0);
+    let successors = |&((x, y), d): &((usize, usize), usize)| {
+        let add = |(dx, dy)| (x.wrapping_add_signed(dx), y.wrapping_add_signed(dy));
+        let r = (d + 1) % 4;
+        let l = (d + 3) % 4;
+        let go_forward = (add(dirs[d]), d);
+        let go_right = (add(dirs[r]), r);
+        let go_left = (add(dirs[l]), l);
+        [(go_forward, 1), (go_right, 1001), (go_left, 1001)]
             .into_iter()
-            .filter(|&((x, y, _), _)| maze[y][x] != '#')
+            .filter(|&(((x, y), _), _)| maze[y][x] != '#')
     };
-    let (parents, end) = dijkstra_partial(&start, successors, |&(x, y, _)| maze[y][x] == 'E');
+    let (parents, end) = dijkstra_partial(&start, successors, |&((x, y), _)| maze[y][x] == 'E');
     let end = end.context("Path to end not found")?;
     let best_score = parents[&end].1;
 
@@ -37,7 +39,7 @@ pub fn run(input: &str) -> aoc::Answer {
         let Some((node, _)) = join_node else { break };
         best_paths_nodes.extend(build_path(node, &parents));
     }
-    let best_paths_tiles: HashSet<_> = best_paths_nodes.iter().map(|&(x, y, ..)| (x, y)).collect();
+    let best_paths_tiles: HashSet<_> = best_paths_nodes.iter().map(|&(pos, _)| pos).collect();
 
     aoc::answers(best_score, best_paths_tiles.len())
 }
