@@ -17,6 +17,7 @@ mod day_13_claw_contraption;
 mod day_14_restroom_redoubt;
 mod day_15_warehouse_woes;
 mod day_16_reindeer_maze;
+mod day_16_reindeer_maze_custom_dijkstra;
 
 fn main() -> aoc::Result<()> {
     let days = [
