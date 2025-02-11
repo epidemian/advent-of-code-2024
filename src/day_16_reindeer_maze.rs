@@ -25,6 +25,8 @@ pub fn run(input: &str) -> aoc::Answer {
     let end = end.context("Path to end not found")?;
     let best_score = parents[&end].1;
 
+    // Reconstruct all possible best paths by looking for nodes that connect to the best path and
+    // have the same cost at the point of connection.
     let mut best_paths_nodes = HashSet::from_iter(build_path(&end, &parents));
     loop {
         let join_node = parents.iter().find(|(node, (_parent, node_cost))| {
