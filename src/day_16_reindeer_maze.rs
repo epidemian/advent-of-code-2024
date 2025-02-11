@@ -19,7 +19,7 @@ pub fn run(input: &str) -> aoc::Answer {
         let go_left = (add(dirs[l]), l);
         [(go_forward, 1), (go_right, 1001), (go_left, 1001)]
             .into_iter()
-            .filter(|&(((x, y), _), _)| maze[y][x] != '#')
+            .filter(|&(((x, y), _), _)| x < w && y < h && maze[y][x] != '#')
     };
     let (parents, end) = dijkstra_partial(&start, successors, |&((x, y), _)| maze[y][x] == 'E');
     let end = end.context("Path to end not found")?;
@@ -42,6 +42,13 @@ pub fn run(input: &str) -> aoc::Answer {
     let best_paths_tiles: HashSet<_> = best_paths_nodes.iter().map(|&(pos, _)| pos).collect();
 
     aoc::answers(best_score, best_paths_tiles.len())
+}
+
+#[test]
+fn bad_inputs_test() {
+    assert_eq!(run("").unwrap_err().to_string(), "Start not found");
+    assert_eq!(run("S").unwrap_err().to_string(), "Path to end not found");
+    assert_eq!(run("S#E").unwrap_err().to_string(), "Path to end not found");
 }
 
 #[test]
