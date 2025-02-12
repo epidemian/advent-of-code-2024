@@ -1,6 +1,6 @@
 use anyhow::Context;
 use itertools::Itertools;
-use pathfinding::prelude::dijkstra;
+use pathfinding::prelude::bfs;
 use rustc_hash::FxHashSet as HashSet;
 
 pub fn run(input: &str) -> aoc::Answer {
@@ -21,9 +21,9 @@ fn parse_byte_coordinates(input: &str) -> aoc::Result<Vec<(u32, u32)>> {
     input.lines().map(parse_coordinates).try_collect()
 }
 
-fn find_path(fallen_bytes: &[(u32, u32)], memory_size: u32) -> Option<u32> {
+fn find_path(fallen_bytes: &[(u32, u32)], memory_size: u32) -> Option<usize> {
     let corrupted_positions: HashSet<_> = fallen_bytes.iter().copied().collect();
-    let (_path, cost) = dijkstra(
+    let path = bfs(
         &(0u32, 0u32),
         |&(x, y)| {
             [(1, 0), (0, 1), (-1, 0), (0, -1)]
@@ -32,11 +32,10 @@ fn find_path(fallen_bytes: &[(u32, u32)], memory_size: u32) -> Option<u32> {
                 .filter(|&(x, y)| {
                     x <= memory_size && y <= memory_size && !corrupted_positions.contains(&(x, y))
                 })
-                .map(|pos| (pos, 1))
         },
         |&pos| pos == (memory_size, memory_size),
     )?;
-    Some(cost)
+    Some(path.len() - 1)
 }
 
 fn find_first_blocking_byte(bytes: &[(u32, u32)], memory_size: u32) -> Option<(u32, u32)> {
