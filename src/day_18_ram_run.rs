@@ -5,8 +5,10 @@ use rustc_hash::FxHashSet as HashSet;
 
 pub fn run(input: &str) -> aoc::Answer {
     let falling_bytes = parse_byte_coordinates(input)?;
-    let step_count = find_path(&falling_bytes, 1024, 70).context("Path to exit not found")?;
-    aoc::answer(step_count)
+    let step_count = find_path(&falling_bytes[0..1024], 70).context("Path to exit not found")?;
+    let (bx, by) = find_first_blocking_byte(&falling_bytes, 70)
+        .context("No byte that blocks path to exit found")?;
+    aoc::answers(step_count, format!("{bx},{by}"))
 }
 
 fn parse_byte_coordinates(input: &str) -> aoc::Result<Vec<(u32, u32)>> {
@@ -18,8 +20,8 @@ fn parse_byte_coordinates(input: &str) -> aoc::Result<Vec<(u32, u32)>> {
     input.lines().map(parse_coordinates).try_collect()
 }
 
-fn find_path(falling_bytes: &[(u32, u32)], byte_count: usize, memory_size: u32) -> Option<u32> {
-    let corrupted_positions: HashSet<_> = falling_bytes[0..byte_count].iter().copied().collect();
+fn find_path(fallen_bytes: &[(u32, u32)], memory_size: u32) -> Option<u32> {
+    let corrupted_positions: HashSet<_> = fallen_bytes.iter().copied().collect();
     let (_path, cost) = dijkstra(
         &(0u32, 0u32),
         |&(x, y)| {
@@ -34,6 +36,13 @@ fn find_path(falling_bytes: &[(u32, u32)], byte_count: usize, memory_size: u32) 
         |&pos| pos == (memory_size, memory_size),
     )?;
     Some(cost)
+}
+
+fn find_first_blocking_byte(bytes: &[(u32, u32)], memory_size: u32) -> Option<(u32, u32)> {
+    let indices = (0..bytes.len()).collect_vec();
+    let blocking_byte_idx =
+        indices.partition_point(|&i| find_path(&bytes[0..=i], memory_size).is_some());
+    bytes.get(blocking_byte_idx).copied()
 }
 
 #[test]
@@ -65,5 +74,6 @@ fn sample_test() {
 2,0
 ";
     let falling_bytes = parse_byte_coordinates(sample).unwrap();
-    assert_eq!(find_path(&falling_bytes, 12, 6), Some(22))
+    assert_eq!(find_path(&falling_bytes[0..12], 6), Some(22));
+    assert_eq!(find_first_blocking_byte(&falling_bytes, 6), Some((6, 1)));
 }
