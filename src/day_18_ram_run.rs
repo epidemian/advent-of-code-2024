@@ -13,9 +13,10 @@ pub fn run(input: &str) -> aoc::Answer {
 
 fn parse_byte_coordinates(input: &str) -> aoc::Result<Vec<(u32, u32)>> {
     let parse_coordinates = |l| {
-        let numbers = aoc::parse_numbers(l)?;
-        let [x, y] = numbers[..].try_into().context("Expected two numbers")?;
-        Ok((x, y))
+        aoc::parse_numbers(l)?
+            .into_iter()
+            .collect_tuple()
+            .context("Expected two numbers")
     };
     input.lines().map(parse_coordinates).try_collect()
 }
@@ -40,9 +41,8 @@ fn find_path(fallen_bytes: &[(u32, u32)], memory_size: u32) -> Option<u32> {
 
 fn find_first_blocking_byte(bytes: &[(u32, u32)], memory_size: u32) -> Option<(u32, u32)> {
     let indices = (0..bytes.len()).collect_vec();
-    let blocking_byte_idx =
-        indices.partition_point(|&i| find_path(&bytes[0..=i], memory_size).is_some());
-    bytes.get(blocking_byte_idx).copied()
+    let idx = indices.partition_point(|&i| find_path(&bytes[0..=i], memory_size).is_some());
+    bytes.get(idx).copied()
 }
 
 #[test]
