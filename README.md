@@ -21,6 +21,12 @@ The `./check-all` script runs all tests and checks all solutions against the ans
 
 ## Notes & Learnings
 
+Keeping the project structure simple was great. Compared to previous years, this one was much simpler. Each daily solution is in its own module, and they all get included and run on `main()`, instead of having separate binaries and needing [a Bash script](https://github.com/epidemian/advent-of-code-2023/blob/main/run-all) to run all solutions like in 2023.
+
+Tests for sample inputs are just unit tests on those same solution files, instead of having to glue the different binaries with their sample input files with [even more Bash](https://github.com/epidemian/advent-of-code-2023/blob/main/check-samples) like in 2023, or having [a complex `build.rs` file](https://github.com/epidemian/advent-of-code-2022/blob/main/build.rs) for auto-generating [unit tests for all sample files](https://github.com/epidemian/advent-of-code-2022/blob/main/src/sample_tests.rs) like in 2022.
+
+Something else i learned from this year's AoC is to do less data modeling. There are no `struct` or `enum` declarations on these solutions. Thus, no `impl` blocks either. Maybe _some_ data could've been modeled with a custom struct (e.g. a common `Grid` type for grid-based puzzles), but i didn't really felt the need for that. Better to KISS.
+
 ### Day 1: Historian Hysteria
 
 Simple puzzle to start the series. A nice excuse to learn about `Iterator::unzip()`, to collect an iterator of 2-element tuples into two containers.
