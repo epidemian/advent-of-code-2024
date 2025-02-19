@@ -35,23 +35,47 @@ But i also learned about the incredibly powerful `Itertools::process_results()` 
 
 ### Day 2: Red-Nosed Reports
 
+Simple numeric puzzle, nothing crazy. A nice practice of polishing common patterns of parsing + data crunching.
+
 ### Day 3: Mull It Over
+
+A weird one. Solved with regexes just because i didn't feel like doing the string parsing "manually".
 
 ### Day 4: Ceres Search
 
+First grid puzzle of the season. Not an easy one to be only day 4! This felt like a nice exercise in trying to express a simple task (finding "XMAS" or the X-MAS crosses) in code in the most readable way, which was not too easy to do in Rust, given the usual bias of the language towards correctness instead of expressivity. I'm quite happy with the result :)
+
 ### Day 5: Print Queue
+
+I had some fun trying to unify the common logic of part 1 and 2. (Part 1 only needed to check which sequences were sorted, and part 2 required to sort the unsorted sequences.)
 
 ### Day 6: Guard Gallivant
 
+Another grid puzzle. My solution for part 2 feels super brute-forced (check all positions the guard walked on part 1, try out an obstacle in each one of them, and see if the guard gets stuck on a loop) and it's also very inefficient (>100ms), but at least it's simple enough to reason about.
+
 ### Day 7: Bridge Repair
+
+A beautiful mathy puzzle. The solution was very "naturally recursive". And i also had some fun thinking about how to "concatenate" two numbers in base 10 without resorting to converting them to strings, concatenating those, and then parsing the result back to a number. Learned about the `ilog10()` method on integers.
 
 ### Day 8: Resonant Collinearity
 
+Quite an interesting grid-based puzzle. It was a nice excuse of learning/practicing some iterator methods, like `Itertools::into_group_map()` for grouping values into a `HashMap`, or `Iterator::take_while()` for cutting-off the infinite iterators used to generate the antinode lines for part 2.
+
+I also spent some time yak-shaving a generalized function for both part 1 and 2. This was more difficult than expected because the difference between part 1 and 2 revolves around how to generate antinodes, and *how many* antinodes are generated for a given pair of antennas. So the generalized function needs to take a closure for getting the antinodes for two given antennas, which is already a generic `Fn()` type, and then these closures need to return an arbitrary number of antinodes, which means they return different kinds of `Iterator`, which is a second level of generic types. This extra complexity could've easily been avoided by making the closures just return an owned type, e.g. `Vec<(i64, i64)>`, but it was more fun to find the most generic and allocation-avoiding solution :)
+
 ### Day 9: Disk Fragmenter
+
+A typical AoC problem where part 2 becomes much more general and complicated than part 1. This time i decided to leave both parts as completely separate solutions, mostly because i found an elegant and simple way of implementing part 1 in terms of just swapping empty blocks (starting from the beginning of the disk) and used blocks (starting from the end of the disk).
 
 ### Day 10: Hoof It
 
+First pathfinding problem of this season, and also another grid-walking puzzle. This one was rather easy thanks to the use of the `pathfinding` crate, which provides very general functions like `bfs_reach()` for finding all the possible trail ends for a given trailhead, or `count_paths()` for counting how many paths there are between a trailhead and an end.
+
 ### Day 11: Plutonian Pebbles
+
+This was one of those typical AoC puzzles where part 1 can be solved naively, and then part 2 is just the same problem, but it bumps up a number that makes the naive solution completely infeasible. In this case, because both the time and space requirements of the naive solution grew exponentially: with 25 blinks we were on the ~100K simulated stones, a pretty manageable number, but with 75 blinks we were already on the ~100T stones, which would've required a long time to process, and more memory than i'll probably have access to in my lifetime.
+
+Luckily the solution was a simple dynamic programming trick: treating stones as groups instead of individual things to simulate.
 
 ### Day 12: Garden Groups
 
