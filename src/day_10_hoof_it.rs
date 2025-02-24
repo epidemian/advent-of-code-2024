@@ -1,5 +1,5 @@
 use anyhow::Context;
-use itertools::{iproduct, Itertools};
+use itertools::{Itertools, iproduct};
 use pathfinding::prelude::{bfs_reach, count_paths};
 
 pub fn run(input: &str) -> aoc::Answer {

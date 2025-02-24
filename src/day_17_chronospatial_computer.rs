@@ -1,4 +1,4 @@
-use anyhow::{ensure, Context};
+use anyhow::{Context, ensure};
 use itertools::Itertools;
 use pathfinding::prelude::bfs;
 

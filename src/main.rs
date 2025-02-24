@@ -1,4 +1,4 @@
-use anyhow::{bail, ensure, Context};
+use anyhow::{Context, bail, ensure};
 use std::{env, fs, io::IsTerminal, time};
 
 mod day_01_historian_hysteria;

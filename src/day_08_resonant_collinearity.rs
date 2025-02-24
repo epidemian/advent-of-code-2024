@@ -1,4 +1,4 @@
-use itertools::{chain, iproduct, Itertools};
+use itertools::{Itertools, chain, iproduct};
 
 pub fn run(input: &str) -> aoc::Answer {
     let (map, w, h) = aoc::parse_char_grid(input)?;
