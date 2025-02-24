@@ -7,10 +7,9 @@ pub fn run(input: &str) -> aoc::Answer {
     let towels: HashSet<_> = towels.split(", ").collect();
     let designs = designs.lines().collect_vec();
     let max_towel_len = towels.iter().map(|t| t.len()).max().unwrap_or(0);
-    let mut cache = HashMap::default();
     let arrangement_counts = designs
         .into_iter()
-        .map(|design| count_arrangements(design, &towels, max_towel_len, &mut cache))
+        .map(|design| count_arrangements(design, &towels, max_towel_len, &mut HashMap::default()))
         .collect_vec();
     aoc::answers(
         arrangement_counts.iter().filter(|&&c| c > 0).count(),
