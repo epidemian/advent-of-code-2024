@@ -30,12 +30,10 @@ fn count_arrangements<'a>(
     if let Some(&n) = cache.get(design) {
         return n;
     }
-    let mut count = 0;
-    for i in 1..=max_towel_len.min(design.len()) {
-        if towels.contains(&design[0..i]) {
-            count += count_arrangements(&design[i..], towels, max_towel_len, cache)
-        }
-    }
+    let count = (1..=max_towel_len.min(design.len()))
+        .filter(|&i| towels.contains(&design[0..i]))
+        .map(|i| count_arrangements(&design[i..], towels, max_towel_len, cache))
+        .sum();
     cache.insert(design, count);
     count
 }
