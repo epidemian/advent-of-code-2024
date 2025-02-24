@@ -1,15 +1,16 @@
 use anyhow::Context;
 use itertools::Itertools;
-use rustc_hash::FxHashMap as HashMap;
+use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 
 pub fn run(input: &str) -> aoc::Answer {
     let (towels, designs) = input.split_once("\n\n").context("Invalid input")?;
-    let towels = towels.split(", ").collect_vec();
+    let towels: HashSet<_> = towels.split(", ").collect();
     let designs = designs.lines().collect_vec();
+    let max_towel_len = towels.iter().map(|t| t.len()).max().unwrap_or(0);
     let mut cache = HashMap::default();
     let arrangement_counts = designs
         .into_iter()
-        .map(|design| count_arrangements(design, &towels, &mut cache))
+        .map(|design| count_arrangements(design, &towels, max_towel_len, &mut cache))
         .collect_vec();
     aoc::answers(
         arrangement_counts.iter().filter(|&&c| c > 0).count(),
@@ -19,7 +20,8 @@ pub fn run(input: &str) -> aoc::Answer {
 
 fn count_arrangements<'a>(
     design: &'a str,
-    towels: &[&str],
+    towels: &HashSet<&str>,
+    max_towel_len: usize,
     cache: &mut HashMap<&'a str, u64>,
 ) -> u64 {
     if design.is_empty() {
@@ -28,15 +30,12 @@ fn count_arrangements<'a>(
     if let Some(&n) = cache.get(design) {
         return n;
     }
-    let count = towels
-        .iter()
-        .map(|t| {
-            let Some(remaining_design) = design.strip_prefix(t) else {
-                return 0;
-            };
-            count_arrangements(remaining_design, towels, cache)
-        })
-        .sum();
+    let mut count = 0;
+    for i in 1..=max_towel_len.min(design.len()) {
+        if towels.contains(&design[0..i]) {
+            count += count_arrangements(&design[i..], towels, max_towel_len, cache)
+        }
+    }
     cache.insert(design, count);
     count
 }
