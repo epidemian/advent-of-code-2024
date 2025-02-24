@@ -31,7 +31,7 @@ pub fn run(input: &str) -> aoc::Answer {
         |&(a, i)| {
             let i = i - 1;
             (0..8)
-                .map(|oct| a | oct << (i * 3))
+                .map(|oct| a | (oct << (i * 3)))
                 .filter(|&a| run_program(a, b, c, &program).get(i) == Some(&program[i]))
                 .map(|a| (a, i))
                 .collect_vec()
