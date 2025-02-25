@@ -21,6 +21,7 @@ mod day_16_reindeer_maze_custom_dijkstra;
 mod day_17_chronospatial_computer;
 mod day_18_ram_run;
 mod day_19_linen_layout;
+mod day_20_race_condition;
 
 fn main() -> aoc::Result<()> {
     let days = [
@@ -43,6 +44,7 @@ fn main() -> aoc::Result<()> {
         day_17_chronospatial_computer::run,
         day_18_ram_run::run,
         day_19_linen_layout::run,
+        day_20_race_condition::run,
     ];
 
     let run_single_day = |day_num: usize| -> aoc::Result<()> {
