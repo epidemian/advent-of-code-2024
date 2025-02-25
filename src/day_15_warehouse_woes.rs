@@ -7,7 +7,7 @@ pub fn run(input: &str) -> aoc::Answer {
     let (map, instructions) = input.split_once("\n\n").context("Invalid input")?;
     let (map, w, h) = aoc::parse_char_grid(map)?;
     let map = iproduct!(0..w, 0..h)
-        .map(|(x, y)| ((x as isize, y as isize), map[y][x]))
+        .map(|(x, y)| ((x as i64, y as i64), map[y][x]))
         .filter(|&(_, ch)| ch != '.')
         .collect();
     let wide_map = widen_map(&map);
@@ -17,7 +17,7 @@ pub fn run(input: &str) -> aoc::Answer {
     )
 }
 
-type Map = HashMap<(isize, isize), char>;
+type Map = HashMap<(i64, i64), char>;
 
 fn widen_map(map: &Map) -> Map {
     let widen_thing = |(&(x, y), &ch)| {
@@ -33,7 +33,7 @@ fn widen_map(map: &Map) -> Map {
     map.iter().flat_map(widen_thing).collect()
 }
 
-fn run_robot(mut map: Map, instructions: &str) -> aoc::Result<isize> {
+fn run_robot(mut map: Map, instructions: &str) -> aoc::Result<i64> {
     let robot = map.iter().find_map(|(pos, &ch)| (ch == '@').then_some(pos));
     let &(mut bot_x, mut bot_y) = robot.context("Robot not found")?;
     for ins in instructions.chars() {
