@@ -19,21 +19,26 @@ pub fn run(input: &str) -> aoc::Answer {
         |&(x, y)| map[y][x] == 'E',
     )
     .context("Path to the end not found")?;
+
     let distances: HashMap<_, _> = path.iter().copied().zip(0..).collect();
-    let mut cheat_count = 0;
-    for &(x, y) in &path {
-        for (dx, dy) in [(1, 0), (0, 1), (-1, 0), (0, -1)] {
-            let (end_x, end_y) = (x.wrapping_add_signed(dx * 2), y.wrapping_add_signed(dy * 2));
-            if end_x < w && end_y < h && map[end_y][end_x] != '#' {
-                let diff = distances[&(end_x, end_y)] - distances[&(x, y)] - 2;
-                if diff >= 100 {
-                    cheat_count += 1
+    let count_cheats = |cheat_time: isize| {
+        let mut cheat_count = 0;
+        for &(x, y) in &path {
+            for (dx, dy) in iproduct!(-cheat_time..=cheat_time, -cheat_time..=cheat_time) {
+                let (end_x, end_y) = (x.wrapping_add_signed(dx), y.wrapping_add_signed(dy));
+                let d = dx.abs() + dy.abs();
+                if end_x < w && end_y < h && d <= cheat_time && map[end_y][end_x] != '#' {
+                    let saved_time = distances[&(end_x, end_y)] - distances[&(x, y)] - d;
+                    if saved_time >= 100 {
+                        cheat_count += 1
+                    }
                 }
             }
         }
-    }
+        cheat_count
+    };
 
-    aoc::answer(cheat_count)
+    aoc::answers(count_cheats(2), count_cheats(20))
 }
 
 #[test]
@@ -54,5 +59,5 @@ fn sample_test() {
 #...#...#...###
 ###############
 ";
-    assert_eq!(run(sample).unwrap(), "0")
+    assert_eq!(run(sample).unwrap(), "0 0")
 }
