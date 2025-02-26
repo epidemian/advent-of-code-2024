@@ -22,18 +22,22 @@ fn find_path(input: &str) -> aoc::Result<Vec<(usize, usize)>> {
     bfs(&start, successors, |&(x, y)| map[y][x] == 'E').context("Path to the end not found")
 }
 
-fn count_cheats(path: &[(usize, usize)], cheat_time: isize, min_save_time: isize) -> i32 {
-    let distances: HashMap<_, _> = path.iter().copied().zip(0..).collect();
+fn count_cheats(path: &[(usize, usize)], max_cheat: isize, min_save_time: isize) -> usize {
+    let times: HashMap<_, _> = path.iter().copied().zip(0..).collect();
     let mut cheat_count = 0;
-    for &(x, y) in path {
-        for (dx, dy) in iproduct!(-cheat_time..=cheat_time, -cheat_time..=cheat_time) {
-            let (end_x, end_y) = (x.wrapping_add_signed(dx), y.wrapping_add_signed(dy));
-            let d = dx.abs() + dy.abs();
-            if d <= cheat_time && distances.contains_key(&(end_x, end_y)) {
-                let saved_time = distances[&(end_x, end_y)] - distances[&(x, y)] - d;
-                if saved_time >= min_save_time {
-                    cheat_count += 1
-                }
+    for (&(x, y), &t) in &times {
+        for (dx, dy) in iproduct!(-max_cheat..=max_cheat, -max_cheat..=max_cheat) {
+            let cheat_dist = dx.abs() + dy.abs();
+            if cheat_dist > max_cheat {
+                continue;
+            }
+            let cheat_end = (x.wrapping_add_signed(dx), y.wrapping_add_signed(dy));
+            let Some(&cheat_end_t) = times.get(&cheat_end) else {
+                continue;
+            };
+            let saved_time = cheat_end_t - t - cheat_dist;
+            if saved_time >= min_save_time {
+                cheat_count += 1
             }
         }
     }
