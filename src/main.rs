@@ -22,6 +22,7 @@ mod day_17_chronospatial_computer;
 mod day_18_ram_run;
 mod day_19_linen_layout;
 mod day_20_race_condition;
+mod day_21_keypad_conundrum;
 
 fn main() -> aoc::Result<()> {
     let days = [
@@ -45,6 +46,7 @@ fn main() -> aoc::Result<()> {
         day_18_ram_run::run,
         day_19_linen_layout::run,
         day_20_race_condition::run,
+        day_21_keypad_conundrum::run,
     ];
 
     let run_single_day = |day_num: usize| -> aoc::Result<()> {
