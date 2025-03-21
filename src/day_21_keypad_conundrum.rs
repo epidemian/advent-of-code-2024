@@ -1,23 +1,8 @@
+use itertools::Itertools;
 use rustc_hash::FxHashMap as HashMap;
 
 pub fn run(input: &str) -> aoc::Answer {
-    let codes = input.lines();
-    let code_complexities_sum: u64 = codes
-        .map(|code| {
-            let sequences = get_numeric_keypad_presses(code)
-                .into_iter()
-                .flat_map(|seq| get_directional_keypad_presses(&seq))
-                .flat_map(|seq| get_directional_keypad_presses(&seq));
-            let min_sequence_len = sequences.map(|seq| seq.len() as u64).min().unwrap_or(0);
-            let code_num = code[0..3].parse::<u64>().unwrap();
-            min_sequence_len * code_num
-        })
-        .sum();
-    aoc::answer(code_complexities_sum)
-}
-
-fn get_numeric_keypad_presses(seq: &str) -> Vec<String> {
-    let keypad = HashMap::from_iter([
+    let numeric_keypad = &HashMap::from_iter([
         ('7', (0, 0)),
         ('8', (1, 0)),
         ('9', (2, 0)),
@@ -31,11 +16,7 @@ fn get_numeric_keypad_presses(seq: &str) -> Vec<String> {
         ('0', (1, 3)),
         ('A', (2, 3)),
     ]);
-    get_button_presses(seq, keypad)
-}
-
-fn get_directional_keypad_presses(seq: &str) -> Vec<String> {
-    let keypad = HashMap::from_iter([
+    let directional_keypad = &HashMap::from_iter([
         (' ', (0, 0)),
         ('^', (1, 0)),
         ('A', (2, 0)),
@@ -43,10 +24,54 @@ fn get_directional_keypad_presses(seq: &str) -> Vec<String> {
         ('v', (1, 1)),
         ('>', (2, 1)),
     ]);
-    get_button_presses(seq, keypad)
+    let p1_keypad_chain = [numeric_keypad, directional_keypad, directional_keypad];
+    let mut p2_keypad_chain = vec![numeric_keypad];
+    p2_keypad_chain.extend(vec![directional_keypad; 24]);
+
+    // aoc::answers(
+    //     run_keypad_chain(input, &p1_keypad_chain),
+    //     run_keypad_chain(input, &p2_keypad_chain),
+    // )
+    aoc::answer(run_keypad_chain(input, &p1_keypad_chain))
 }
 
-fn get_button_presses(seq: &str, keypad: HashMap<char, (i32, i32)>) -> Vec<String> {
+fn run_keypad_chain(input: &str, keypad_chain: &[&HashMap<char, (i32, i32)>]) -> u64 {
+    let code_complexities_sum: u64 = input
+        .lines()
+        .map(|code| {
+            // println!("processing {code}");
+            let sequences = keypad_chain
+                .iter()
+                .fold(vec![code.to_string()], |seqs, keypad| {
+                    let mut next_sequences = seqs
+                        .into_iter()
+                        .flat_map(|seq| get_button_presses(&seq, keypad))
+                        .collect_vec();
+                    let min_seq_len = next_sequences
+                        .iter()
+                        .map(|seq| seq.len())
+                        .min()
+                        .unwrap_or(0);
+                    next_sequences.retain(|seq| seq.len() == min_seq_len);
+                    // println!("#seqs: {}", next_sequences.len());
+                    // println!("min seq: {min_seq_len}");
+
+                    next_sequences
+                });
+            // println!();
+            let min_sequence_len = sequences
+                .iter()
+                .map(|seq| seq.len() as u64)
+                .min()
+                .unwrap_or(0);
+            let code_num = code[0..3].parse::<u64>().unwrap();
+            min_sequence_len * code_num
+        })
+        .sum();
+    code_complexities_sum
+}
+
+fn get_button_presses(seq: &str, keypad: &HashMap<char, (i32, i32)>) -> Vec<String> {
     let (mut x, mut y) = keypad[&'A'];
     let mut button_presses = vec![String::new()];
     let (bad_x, bad_y) = keypad[&' '];
@@ -123,14 +148,6 @@ fn get_button_presses(seq: &str, keypad: HashMap<char, (i32, i32)>) -> Vec<Strin
         (x, y) = (end_x, end_y);
     }
     button_presses
-}
-
-#[test]
-fn numeric_keypad_test() {
-    assert_eq!(
-        get_numeric_keypad_presses("029A"),
-        vec!["<A^A>^^AvvvA", "<A^A^^>AvvvA"]
-    )
 }
 
 #[test]
