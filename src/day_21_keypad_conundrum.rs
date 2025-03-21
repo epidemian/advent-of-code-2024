@@ -77,74 +77,27 @@ fn get_button_presses(seq: &str, keypad: &HashMap<char, (i32, i32)>) -> Vec<Stri
     let (bad_x, bad_y) = keypad[&' '];
 
     for ch in seq.chars() {
-        let add_moves = |button_presses: &mut [String], moves: &str| {
-            button_presses.iter_mut().for_each(|s| s.push_str(moves))
-        };
         let (end_x, end_y) = keypad[&ch];
         let (dx, dy) = (end_x - x, end_y - y);
-        if dx != 0 && dy != 0 {
-            if y == bad_y && end_x == bad_x {
-                if dy < 0 {
-                    add_moves(&mut button_presses, &"^".repeat(-dy as usize));
-                } else {
-                    add_moves(&mut button_presses, &"v".repeat(dy as usize));
-                }
-                if dx < 0 {
-                    add_moves(&mut button_presses, &"<".repeat(-dx as usize));
-                } else {
-                    add_moves(&mut button_presses, &">".repeat(dx as usize));
-                }
-            } else if x == bad_x && end_y == bad_y {
-                if dx < 0 {
-                    add_moves(&mut button_presses, &"<".repeat(-dx as usize));
-                } else {
-                    add_moves(&mut button_presses, &">".repeat(dx as usize));
-                }
-                if dy < 0 {
-                    add_moves(&mut button_presses, &"^".repeat(-dy as usize));
-                } else {
-                    add_moves(&mut button_presses, &"v".repeat(dy as usize));
-                }
-            } else {
-                let mut button_presses_copy = button_presses.clone();
+        let h_moves = if dx < 0 { "<" } else { ">" }.repeat(dx.unsigned_abs() as usize);
+        let v_moves = if dy < 0 { "^" } else { "v" }.repeat(dy.unsigned_abs() as usize);
+        let h_first_path = String::new() + &h_moves + &v_moves + "A";
+        let v_first_path = String::new() + &v_moves + &h_moves + "A";
 
-                if dx < 0 {
-                    add_moves(&mut button_presses, &"<".repeat(-dx as usize));
-                } else {
-                    add_moves(&mut button_presses, &">".repeat(dx as usize));
-                }
-                if dy < 0 {
-                    add_moves(&mut button_presses, &"^".repeat(-dy as usize));
-                } else {
-                    add_moves(&mut button_presses, &"v".repeat(dy as usize));
-                }
+        let ch_paths = if dx == 0 || dy == 0 {
+            vec![h_first_path]
+        } else if y == bad_y && end_x == bad_x {
+            vec![v_first_path]
+        } else if x == bad_x && end_y == bad_y {
+            vec![h_first_path]
+        } else {
+            vec![h_first_path, v_first_path]
+        };
 
-                if dy < 0 {
-                    add_moves(&mut button_presses_copy, &"^".repeat(-dy as usize));
-                } else {
-                    add_moves(&mut button_presses_copy, &"v".repeat(dy as usize));
-                }
-                if dx < 0 {
-                    add_moves(&mut button_presses_copy, &"<".repeat(-dx as usize));
-                } else {
-                    add_moves(&mut button_presses_copy, &">".repeat(dx as usize));
-                }
-                button_presses.extend(button_presses_copy);
-            }
-        } else if dx != 0 {
-            if dx < 0 {
-                add_moves(&mut button_presses, &"<".repeat(-dx as usize));
-            } else {
-                add_moves(&mut button_presses, &">".repeat(dx as usize));
-            }
-        } else if dy != 0 {
-            if dy < 0 {
-                add_moves(&mut button_presses, &"^".repeat(-dy as usize));
-            } else {
-                add_moves(&mut button_presses, &"v".repeat(dy as usize));
-            }
-        }
-        button_presses.iter_mut().for_each(|s| s.push('A'));
+        button_presses = button_presses
+            .into_iter()
+            .flat_map(|s| ch_paths.iter().map(move |ch_path| s.clone() + ch_path))
+            .collect();
         (x, y) = (end_x, end_y);
     }
     button_presses
