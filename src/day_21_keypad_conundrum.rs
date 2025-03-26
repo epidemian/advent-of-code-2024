@@ -1,87 +1,83 @@
 use rustc_hash::FxHashMap as HashMap;
 
 pub fn run(input: &str) -> aoc::Answer {
-    aoc::answers(run_robots_chain(input, 2), run_robots_chain(input, 25))
+    aoc::answers(
+        get_complexities_sum(input, 2),
+        get_complexities_sum(input, 25),
+    )
 }
 
-fn run_robots_chain(input: &str, robot_count: u32) -> usize {
-    let numeric_keypad = HashMap::from_iter([
-        ('7', (0, 0)),
-        ('8', (1, 0)),
-        ('9', (2, 0)),
-        ('4', (0, 1)),
-        ('5', (1, 1)),
-        ('6', (2, 1)),
-        ('1', (0, 2)),
-        ('2', (1, 2)),
-        ('3', (2, 2)),
-        (' ', (0, 3)),
-        ('0', (1, 3)),
-        ('A', (2, 3)),
+fn get_complexities_sum(input: &str, dir_robot_count: usize) -> usize {
+    #[rustfmt::skip]
+    let num_pad = &build_keypad(&[
+        "789",
+        "456",
+        "123",
+        " 0A",
     ]);
-    let directional_keypad = HashMap::from_iter([
-        (' ', (0, 0)),
-        ('^', (1, 0)),
-        ('A', (2, 0)),
-        ('<', (0, 1)),
-        ('v', (1, 1)),
-        ('>', (2, 1)),
+    #[rustfmt::skip]
+    let dir_pad = &build_keypad(&[
+        " ^A",
+        "<v>",
     ]);
+    let mut keypad_chain = vec![num_pad];
+    keypad_chain.extend(vec![dir_pad; dir_robot_count]);
+
     let mut cache = HashMap::default();
     let code_complexities = input.lines().map(|code| {
-        let min_seq_len = calc_button_presses(code, &numeric_keypad)
-            .iter()
-            .map(|sequence| {
-                get_shortest_final_sequence(sequence, &directional_keypad, robot_count, &mut cache)
-            })
-            .min()
-            .unwrap();
+        let min_seq_len = shortest_final_sequence_len(code, &keypad_chain, &mut cache);
         let code_num = code[0..3].parse::<usize>().unwrap();
         min_seq_len * code_num
     });
     code_complexities.sum()
 }
 
-fn get_shortest_final_sequence(
+type Keypad = HashMap<char, (usize, usize)>;
+
+fn build_keypad(keypad_rows: &[&str]) -> Keypad {
+    keypad_rows
+        .iter()
+        .enumerate()
+        .flat_map(|(y, row)| row.chars().enumerate().map(move |(x, ch)| (ch, (x, y))))
+        .collect()
+}
+
+fn shortest_final_sequence_len(
     sequence: &str,
-    keypad: &HashMap<char, (i32, i32)>,
-    robot_depth: u32,
-    cache: &mut HashMap<(String, u32), usize>,
+    keypads: &[&Keypad],
+    cache: &mut HashMap<(String, usize), usize>,
 ) -> usize {
-    if robot_depth == 0 {
+    if keypads.is_empty() {
         return sequence.len();
     }
-    if let Some(&min_len) = cache.get(&(sequence.to_string(), robot_depth)) {
+    if let Some(&min_len) = cache.get(&(sequence.to_string(), keypads.len())) {
         return min_len;
     }
-    let mut total_len = 0;
-    for sub_seq in sequence.split_inclusive('A') {
-        total_len += calc_button_presses(sub_seq, keypad)
+    let sub_seq_lengths = sequence.split_inclusive('A').map(|sub_seq| {
+        calc_button_presses(sub_seq, keypads[0])
             .into_iter()
-            .map(|next_robot_seq| {
-                get_shortest_final_sequence(&next_robot_seq, keypad, robot_depth - 1, cache)
-            })
+            .map(|next_seq| shortest_final_sequence_len(&next_seq, &keypads[1..], cache))
             .min()
-            .unwrap();
-    }
-    cache.insert((sequence.to_string(), robot_depth), total_len);
+            .unwrap()
+    });
+    let total_len = sub_seq_lengths.sum();
+    cache.insert((sequence.to_string(), keypads.len()), total_len);
     total_len
 }
 
-fn calc_button_presses(seq: &str, keypad: &HashMap<char, (i32, i32)>) -> Vec<String> {
+fn calc_button_presses(seq: &str, keypad: &Keypad) -> Vec<String> {
     let (mut x, mut y) = keypad[&'A'];
-    let mut button_presses = vec![String::new()];
     let (bad_x, bad_y) = keypad[&' '];
+    let mut button_presses = vec![String::new()];
 
     for ch in seq.chars() {
         let (end_x, end_y) = keypad[&ch];
-        let (dx, dy) = (end_x - x, end_y - y);
-        let h_moves = if dx < 0 { "<" } else { ">" }.repeat(dx.unsigned_abs() as usize);
-        let v_moves = if dy < 0 { "^" } else { "v" }.repeat(dy.unsigned_abs() as usize);
-        let h_first_path = String::new() + &h_moves + &v_moves + "A";
-        let v_first_path = String::new() + &v_moves + &h_moves + "A";
+        let h_moves = if end_x < x { "<" } else { ">" }.repeat(end_x.abs_diff(x));
+        let v_moves = if end_y < y { "^" } else { "v" }.repeat(end_y.abs_diff(y));
+        let h_first_path = [&h_moves, &v_moves, "A"].join("");
+        let v_first_path = [&v_moves, &h_moves, "A"].join("");
 
-        let ch_paths = if dx == 0 || dy == 0 {
+        let ch_paths = if h_moves.is_empty() || v_moves.is_empty() {
             vec![h_first_path]
         } else if y == bad_y && end_x == bad_x {
             vec![v_first_path]
@@ -108,5 +104,5 @@ fn sample_test() {
 456A
 379A
 ";
-    assert_eq!(run_robots_chain(sample, 2), 126384)
+    assert_eq!(get_complexities_sum(sample, 2), 126384)
 }
