@@ -1,3 +1,4 @@
+use regex::Regex;
 use rustc_hash::FxHashMap as HashMap;
 
 pub fn run(input: &str) -> aoc::Answer {
@@ -23,10 +24,12 @@ fn get_complexities_sum(input: &str, dir_robot_count: usize) -> usize {
     let mut keypad_chain = vec![num_pad];
     keypad_chain.extend(vec![dir_pad; dir_robot_count]);
 
+    let code_re = Regex::new(r"([0-9]+)A").unwrap();
     let mut cache = HashMap::default();
-    let code_complexities = input.lines().map(|code| {
+    let code_complexities = code_re.captures_iter(input).map(|cap| {
+        let (code, [code_num]) = cap.extract();
+        let code_num: usize = code_num.parse().unwrap();
         let min_seq_len = shortest_final_sequence_len(code, &keypad_chain, &mut cache);
-        let code_num = code[0..3].parse::<usize>().unwrap();
         min_seq_len * code_num
     });
     code_complexities.sum()
@@ -94,6 +97,18 @@ fn calc_button_presses(seq: &str, keypad: &Keypad) -> Vec<String> {
         (x, y) = (end_x, end_y);
     }
     button_presses
+}
+
+#[test]
+fn empty_input_test() {
+    assert_eq!(run("").unwrap(), "0 0");
+}
+
+#[test]
+fn bad_inputs_test() {
+    assert!(run("A").is_ok());
+    assert!(run("\n").is_ok());
+    assert!(run("xxx").is_ok());
 }
 
 #[test]
