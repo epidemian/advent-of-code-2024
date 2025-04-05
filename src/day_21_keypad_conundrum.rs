@@ -9,20 +9,9 @@ pub fn run(input: &str) -> aoc::Answer {
 }
 
 fn get_complexities_sum(input: &str, dir_robot_count: usize) -> usize {
-    #[rustfmt::skip]
-    let num_pad = &build_keypad(&[
-        "789",
-        "456",
-        "123",
-        " 0A",
-    ]);
-    #[rustfmt::skip]
-    let dir_pad = &build_keypad(&[
-        " ^A",
-        "<v>",
-    ]);
-    let mut keypad_chain = vec![num_pad];
-    keypad_chain.extend(vec![dir_pad; dir_robot_count]);
+    let num_pad = &build_keypad("789\n456\n123\n 0A");
+    let dir_pad = &build_keypad(" ^A\n<v>");
+    let keypad_chain = [vec![num_pad], vec![dir_pad; dir_robot_count]].concat();
 
     let code_re = Regex::new(r"([0-9]+)A").unwrap();
     let mut cache = HashMap::default();
@@ -37,9 +26,8 @@ fn get_complexities_sum(input: &str, dir_robot_count: usize) -> usize {
 
 type Keypad = HashMap<char, (usize, usize)>;
 
-fn build_keypad(keypad_rows: &[&str]) -> Keypad {
-    keypad_rows
-        .iter()
+fn build_keypad(s: &str) -> Keypad {
+    s.lines()
         .enumerate()
         .flat_map(|(y, row)| row.chars().enumerate().map(move |(x, ch)| (ch, (x, y))))
         .collect()
