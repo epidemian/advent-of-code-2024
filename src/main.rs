@@ -23,6 +23,7 @@ mod day_18_ram_run;
 mod day_19_linen_layout;
 mod day_20_race_condition;
 mod day_21_keypad_conundrum;
+mod day_22_monkey_market;
 
 fn main() -> aoc::Result<()> {
     let days = [
@@ -47,6 +48,7 @@ fn main() -> aoc::Result<()> {
         day_19_linen_layout::run,
         day_20_race_condition::run,
         day_21_keypad_conundrum::run,
+        day_22_monkey_market::run,
     ];
 
     let run_single_day = |day_num: usize| -> aoc::Result<()> {
