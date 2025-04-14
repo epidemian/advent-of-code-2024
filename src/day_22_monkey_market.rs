@@ -1,9 +1,9 @@
 use itertools::{Itertools, zip_eq};
-use rustc_hash::FxHashMap as HashMap;
+use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 
 pub fn run(input: &str) -> aoc::Answer {
-    let secrets = aoc::parse_numbers(input)?;
-    let secret_sequences: Vec<Vec<u64>> = secrets
+    let initial_secrets = aoc::parse_numbers(input)?;
+    let secrets: Vec<Vec<u64>> = initial_secrets
         .into_iter()
         .map(|secret| {
             (0..=2000)
@@ -15,33 +15,32 @@ pub fn run(input: &str) -> aoc::Answer {
                 .collect()
         })
         .collect();
-    let price_sequences: Vec<Vec<u8>> = secret_sequences
+    let prices: Vec<Vec<u8>> = secrets
         .iter()
-        .map(|secrets| secrets.iter().map(|s| (s % 10) as u8).collect())
+        .map(|monkey_secrets| monkey_secrets.iter().map(|s| (s % 10) as u8).collect())
         .collect();
-    let diff_sequences: Vec<Vec<i8>> = price_sequences
+    let diffs: Vec<Vec<u8>> = prices
         .iter()
-        .map(|prices| {
-            prices
+        .map(|monkey_prices| {
+            monkey_prices
                 .iter()
                 .tuple_windows()
-                .map(|(&a, &b)| b as i8 - a as i8)
+                .map(|(&a, &b)| 10 + b - a) // Avoid negative diff
                 .collect()
         })
         .collect();
-    let mut total_bananas: HashMap<[i8; 4], u64> = HashMap::default();
-    for (diff_seq, price_seq) in zip_eq(diff_sequences, price_sequences) {
-        let mut monkey_bananas: HashMap<[i8; 4], u8> = HashMap::default();
-        for (diffs, &price) in zip_eq(diff_seq.windows(4), &price_seq[4..]) {
-            let diffs: [i8; 4] = diffs.try_into().unwrap();
-            monkey_bananas.entry(diffs).or_insert(price);
-        }
-        for (diff, price) in monkey_bananas {
-            *total_bananas.entry(diff).or_insert(0) += price as u64;
+    let mut total_bananas = HashMap::default();
+    for (monkey_diffs, monkey_prices) in zip_eq(diffs, prices) {
+        let mut diffs_seen = HashSet::default();
+        for (diffs, &price) in zip_eq(monkey_diffs.windows(4), &monkey_prices[4..]) {
+            let diffs: [u8; 4] = diffs.try_into().unwrap();
+            if diffs_seen.insert(diffs) {
+                *total_bananas.entry(diffs).or_insert(0) += price as u32;
+            }
         }
     }
+    let sum: u64 = secrets.iter().flat_map(|s| s.last()).sum();
     let max_bananas = total_bananas.values().max().unwrap_or(&0);
-    let sum: u64 = secret_sequences.iter().flat_map(|s| s.last()).sum();
     aoc::answers(sum, max_bananas)
 }
 
