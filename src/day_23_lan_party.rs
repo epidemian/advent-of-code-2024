@@ -1,4 +1,4 @@
-use anyhow::bail;
+use anyhow::Context;
 use itertools::Itertools;
 use pathfinding::prelude::maximal_cliques_collect;
 use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
@@ -7,7 +7,7 @@ pub fn run(input: &str) -> aoc::Answer {
     let conns = parse_connections(input)?;
     let triplets_count = conns
         .iter()
-        .filter(|(id, _)| id[0] == b't')
+        .filter(|(id, _)| id.starts_with('t'))
         .flat_map(|(&id, computers)| {
             computers
                 .iter()
@@ -17,28 +17,25 @@ pub fn run(input: &str) -> aoc::Answer {
         })
         .unique()
         .count();
-    let parties = maximal_cliques_collect(conns.keys().copied(), &mut |a, b| conns[a].contains(b));
-    let max_party = parties.iter().max_by_key(|p| p.len()).unwrap();
-    let password = max_party
-        .iter()
-        .flat_map(|id| std::str::from_utf8(id))
-        .sorted()
-        .join(",");
+    let cliques = maximal_cliques_collect(conns.keys().copied(), &mut |a, b| conns[a].contains(b));
+    let max_clique = cliques.iter().max_by_key(|c| c.len()).unwrap();
+    let password = max_clique.iter().sorted().join(",");
     aoc::answers(triplets_count, password)
 }
 
-type Id = [u8; 2];
-
-fn parse_connections(input: &str) -> aoc::Result<HashMap<Id, HashSet<Id>>> {
-    let mut conns = HashMap::<Id, HashSet<Id>>::default();
+fn parse_connections(input: &str) -> aoc::Result<HashMap<&str, HashSet<&str>>> {
+    let mut conns = HashMap::<&str, HashSet<&str>>::default();
     for line in input.lines() {
-        let &[a, b, b'-', c, d] = line.as_bytes() else {
-            bail!("invalid input line '{line}'");
-        };
-        conns.entry([a, b]).or_default().insert([c, d]);
-        conns.entry([c, d]).or_default().insert([a, b]);
+        let (a, b) = line.split_once('-').context("invalid input line")?;
+        conns.entry(a).or_default().insert(b);
+        conns.entry(b).or_default().insert(a);
     }
     Ok(conns)
+}
+
+#[test]
+fn empty_input_test() {
+    assert_eq!(run("").unwrap(), "0 ")
 }
 
 #[test]
