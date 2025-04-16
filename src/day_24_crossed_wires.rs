@@ -65,7 +65,7 @@ fn get_value(name: &str, wires: &HashMap<&str, Wire>) -> bool {
 fn get_swapped_wires(wires: &HashMap<&str, Wire>) -> String {
     let mut bad_wires = Vec::new();
 
-    for (&name, wire) in wires.iter().sorted_by_key(|&(_, w)| w) {
+    for (&name, wire) in wires {
         if name.starts_with('z') {
             let is_good_z = matches!(wire, Xor(..)) || (matches!(wire, Or(..)) && name == "z45");
             if !is_good_z {
