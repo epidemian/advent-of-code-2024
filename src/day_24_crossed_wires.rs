@@ -7,7 +7,7 @@ pub fn run(input: &str) -> aoc::Answer {
     aoc::answers(get_numeric_output(&wires), get_swapped_wires(&wires))
 }
 
-#[derive(PartialEq, PartialOrd, Eq, Ord)]
+#[derive(PartialEq, PartialOrd)]
 enum Wire<'a> {
     Input(bool),
     And(&'a str, &'a str),
@@ -61,10 +61,14 @@ fn get_value(name: &str, wires: &HashMap<&str, Wire>) -> bool {
 
 // Note: This only works for the special case of the wiring being a full adder of 45-bit numbers
 // with the specific shape of the input.
-// TODO: refactor this monstrosity.
+// TODO: Try to refactor this mess.
 fn get_swapped_wires(wires: &HashMap<&str, Wire>) -> String {
-    let mut bad_wires = Vec::new();
+    let sorted_wires = |a, b| {
+        let (a, b) = if wires[a] < wires[b] { (a, b) } else { (b, a) };
+        (a, b, (&wires[a], &wires[b]))
+    };
 
+    let mut bad_wires = Vec::new();
     for (&name, wire) in wires {
         if name.starts_with('z') {
             let is_good_z = matches!(wire, Xor(..)) || (matches!(wire, Or(..)) && name == "z45");
@@ -73,62 +77,35 @@ fn get_swapped_wires(wires: &HashMap<&str, Wire>) -> String {
                 continue;
             }
         }
-        match wire {
+        match *wire {
             Xor(a, b) => {
-                let wire_a = &wires[a];
-                let wire_b = &wires[b];
-                if matches!((wire_a, wire_b), (Input(..), Input(..))) {
+                let (a, b, inputs) = sorted_wires(a, b);
+                if matches!(inputs, (Input(..), Input(..))) {
                     continue;
                 }
-                let mut wires = [wire_a, wire_b];
-                wires.sort();
-                if !matches!(wires, [Or(..), Xor(..)]) {
-                    if matches!(wires, [And(..), Xor(..)]) && name == "z01" {
+                if !matches!(inputs, (Or(..), Xor(..))) {
+                    if matches!(inputs, (And(..), Xor(..))) && name == "z01" {
                         continue;
                     }
-                    if !matches!(wires[0], Or(..)) {
-                        bad_wires.push(if wires[0] == wire_a { a } else { b });
-                    } else if !matches!(wires[1], Xor(..)) {
-                        bad_wires.push(if wires[1] == wire_a { a } else { b });
-                    } else {
-                        unreachable!()
-                    }
+                    bad_wires.push(if matches!(inputs.0, Or(..)) { b } else { a });
                 }
             }
             And(a, b) => {
-                let wire_a = &wires[a];
-                let wire_b = &wires[b];
-                if matches!((wire_a, wire_b), (Input(..), Input(..))) {
+                let (a, b, inputs) = sorted_wires(a, b);
+                if matches!(inputs, (Input(..), Input(..))) {
                     continue;
                 }
-                let mut wires = [wire_a, wire_b];
-                wires.sort();
-                if !matches!(wires, [Or(..), Xor(..)]) {
-                    if matches!(wires, [And("y00", "x00"), Xor(..)]) {
+                if !matches!(inputs, (Or(..), Xor(..))) {
+                    if matches!(inputs, (And("y00", "x00"), Xor(..))) {
                         continue;
                     }
-                    if !matches!(wires[0], Or(..)) {
-                        bad_wires.push(if wires[0] == wire_a { a } else { b });
-                    } else if !matches!(wires[1], Xor(..)) {
-                        bad_wires.push(if wires[1] == wire_a { a } else { b });
-                    } else {
-                        unreachable!()
-                    }
+                    bad_wires.push(if matches!(inputs.0, Or(..)) { b } else { a });
                 }
             }
             Or(a, b) => {
-                let wire_a = &wires[a];
-                let wire_b = &wires[b];
-                let mut wires = [wire_a, wire_b];
-                wires.sort();
-                if !matches!(wires, [And(..), And(..)]) {
-                    if !matches!(wires[0], And(..)) {
-                        bad_wires.push(if wires[0] == wire_a { a } else { b });
-                    } else if !matches!(wires[1], And(..)) {
-                        bad_wires.push(if wires[1] == wire_a { a } else { b });
-                    } else {
-                        unreachable!()
-                    }
+                let (a, b, inputs) = sorted_wires(a, b);
+                if !matches!(inputs, (And(..), And(..))) {
+                    bad_wires.push(if matches!(inputs.0, And(..)) { b } else { a });
                 }
             }
             Input(_) => {}
