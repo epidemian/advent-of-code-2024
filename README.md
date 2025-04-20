@@ -131,14 +131,37 @@ Part 1 could be cheesed by using regexes. But part 2 required a bit more thought
 
 ### Day 20: Race Condition
 
+An easy pathfinding 2-grid problem with an interesting twist. It was quite fun trying to come up with a general solution for both parts 1 and 2. At first, part 2 seemed daunting, but thinking in terms of [Taxicab distances](https://en.wikipedia.org/wiki/Taxicab_geometry) from the cells in the shortest path to cells which we can "cheat" into made it much more tractable.
+
 ### Day 21: Keypad Conundrum
+
+Probably the hardest puzzle of the year. Short inputs really mean hard puzzles! Part 1 was already mind-bending enough, with its "meta" feeling of directional keypads being controlled by other directional keypads and so on, and my first solution for it was some of the scrappiest code i've ever written.
+
+But then part 2 was the usual ramp-up of numbers that makes a naive solution infeasible in terms of runtime or memory consumption, due to the exponential nature of the problem. It required some clever decomposition and, as usual, caching.
+
+This is the only problem where i felt so stuck that i went looking for "inspiration" online. Making the general length-counting function recursive and cached by robot level is an idea i ~~found on~~ stole from reddit.
 
 ### Day 22: Monkey Market
 
+Quite a simple puzzle for day 22. Part 1 is a straightforward pseudo-random number generation problem. And for part 2, i was initially overthinking things and considering that i had to simulate the buying process for all possible price difference sequences. But it could be solved in a straightforward manner by just adding up the different banana amounts the buying monkey would buy while the difference sequences are being generated.
+
+Also, this was a nice example of when imperative code can be simpler and read better than the decomposed iterator-based approach.
+
 ### Day 23: LAN Party
+
+First graph problem of the year. They are usually hard so the come up in the last days. Part 1 was simple enough to do in a naive way: count pair combination for computers that are connected to computers whose name start with "t".
+
+Part would've required some fancy graph algorithm, like last year's [day 25 puzzle](https://github.com/epidemian/advent-of-code-2023?tab=readme-ov-file#day-25-snowverload), but luckily this is a known problem and the `pathfinding` crate has an implementation of an algorithm to [find all the complete sub-graphs](https://docs.rs/pathfinding/latest/pathfinding/undirected/cliques/index.html), known as cliques. So i just re-used that :)
 
 ### Day 24: Crossed Wires
 
+This was sort of another graph puzzle, but didn't feel much like it. Part 1 was a simple-enough circuit simulation. I went for a backtracking approach, starting from the end cables and "going back" to the initial inputs to generate the output bits.
+
+Then part 2 was one of the problems where you have to think about the shape of the particular input — instead of *any* general input — and find and ad-hoc solution there. It took me some time to come up with a code solution that was not horribly ugly.
+
 ### Day 25: Code Chronicle
 
+A super easy ending. It even seemed like the problem description was a red herring to over-complicate the solution: the number of matching key-lock pairs could be found by simply comparing their string representation and checking that no "#" overlap.
+
+I guess this was a nice breather for Christmas. Although i ended up solving it on Easter, which is... fitting, in a way.
 
