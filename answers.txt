@@ -22,3 +22,4 @@ Day 21: 213536 258369757013802
 Day 22: 17724064040 1998
 Day 23: 1366 bs,cf,cn,gb,gk,jf,mp,qk,qo,st,ti,uc,xw
 Day 24: 46463754151024 cqk,fph,gds,jrs,wrk,z15,z21,z34
+Day 25: 2815

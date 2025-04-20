@@ -26,6 +26,7 @@ mod day_21_keypad_conundrum;
 mod day_22_monkey_market;
 mod day_23_lan_party;
 mod day_24_crossed_wires;
+mod day_25_code_chronicle;
 
 fn main() -> aoc::Result<()> {
     let days = [
@@ -53,6 +54,7 @@ fn main() -> aoc::Result<()> {
         day_22_monkey_market::run,
         day_23_lan_party::run,
         day_24_crossed_wires::run,
+        day_25_code_chronicle::run,
     ];
 
     let run_single_day = |day_num: usize| -> aoc::Result<()> {
