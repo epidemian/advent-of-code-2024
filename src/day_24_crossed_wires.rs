@@ -3,115 +3,100 @@ use itertools::Itertools;
 use rustc_hash::FxHashMap as HashMap;
 
 pub fn run(input: &str) -> aoc::Answer {
-    let wires = parse_wires(input)?;
-    aoc::answers(get_numeric_output(&wires), get_swapped_wires(&wires))
+    let (inputs, gates) = parse_wires(input)?;
+    aoc::answers(
+        get_numeric_output(&inputs, &gates),
+        get_swapped_wires(&gates),
+    )
 }
 
-#[derive(PartialEq, PartialOrd)]
-enum Wire<'a> {
-    Input(bool),
-    And(&'a str, &'a str),
-    Or(&'a str, &'a str),
-    Xor(&'a str, &'a str),
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+enum Op {
+    And,
+    Or,
+    Xor,
 }
-use Wire::*;
+use Op::*;
 
-fn parse_wires(input: &str) -> aoc::Result<HashMap<&str, Wire>> {
+type WireMap<'a, T> = HashMap<&'a str, T>;
+type Gate<'a> = (Op, &'a str, &'a str);
+
+fn parse_wires(input: &str) -> aoc::Result<(WireMap<bool>, WireMap<Gate>)> {
     let (inputs, gates) = input
         .split_once("\n\n")
         .context("section separator not found")?;
 
-    let inputs = inputs.lines().map(|line| {
+    let inputs = inputs.lines().map(|line| -> aoc::Result<_> {
         let (name, value) = line.split_once(": ").context("invalid line")?;
-        Ok((name, Input(value == "1")))
+        Ok((name, value == "1"))
     });
 
     let gates = gates.lines().map(|line| {
         Ok(match line.split(' ').collect_tuple() {
-            Some((a, "AND", b, "->", out)) => (out, And(a, b)),
-            Some((a, "OR", b, "->", out)) => (out, Or(a, b)),
-            Some((a, "XOR", b, "->", out)) => (out, Xor(a, b)),
+            Some((a, "AND", b, "->", out)) => (out, (And, a, b)),
+            Some((a, "OR", b, "->", out)) => (out, (Or, a, b)),
+            Some((a, "XOR", b, "->", out)) => (out, (Xor, a, b)),
             _ => bail!("invalid gate line '{line}'"),
         })
     });
 
-    inputs.chain(gates).try_collect()
+    Ok((inputs.try_collect()?, gates.try_collect()?))
 }
 
-fn get_numeric_output(wires: &HashMap<&str, Wire>) -> u64 {
-    wires
+fn get_numeric_output(inputs: &WireMap<bool>, gates: &WireMap<Gate>) -> u64 {
+    gates
         .keys()
         .filter(|name| name.starts_with('z'))
         .map(|name| {
-            let value = get_value(name, wires) as u64;
+            let value = get_value(name, inputs, gates) as u64;
             let bit: u32 = name[1..].parse().unwrap();
             value << bit
         })
         .sum()
 }
 
-fn get_value(name: &str, wires: &HashMap<&str, Wire>) -> bool {
-    match wires[name] {
-        Input(val) => val,
-        And(a, b) => get_value(a, wires) & get_value(b, wires),
-        Or(a, b) => get_value(a, wires) | get_value(b, wires),
-        Xor(a, b) => get_value(a, wires) ^ get_value(b, wires),
+fn get_value(name: &str, inputs: &WireMap<bool>, gates: &WireMap<Gate>) -> bool {
+    if let Some(&val) = inputs.get(name) {
+        return val;
+    };
+    let (op, a, b) = gates[name];
+    let (a, b) = (get_value(a, inputs, gates), get_value(b, inputs, gates));
+    match op {
+        And => a & b,
+        Or => a | b,
+        Xor => a ^ b,
     }
 }
 
 // Note: This only works for the special case of the wiring being a full adder of 45-bit numbers
 // with the specific shape of the input.
-// TODO: Try to refactor this mess.
-fn get_swapped_wires(wires: &HashMap<&str, Wire>) -> String {
-    let sorted_wires = |a, b| {
-        let (a, b) = if wires[a] < wires[b] { (a, b) } else { (b, a) };
-        (a, b, (&wires[a], &wires[b]))
-    };
+fn get_swapped_wires(gates: &WireMap<Gate>) -> String {
+    let mut gate_outputs: WireMap<Vec<&str>> = WireMap::default();
+    for (&name, &(_op, a, b)) in gates {
+        gate_outputs.entry(name).or_default();
+        gate_outputs.entry(a).or_default().push(name);
+        gate_outputs.entry(b).or_default().push(name);
+    }
+    let is_input = |name: &str| name.starts_with(['x', 'y']);
 
     let mut bad_wires = Vec::new();
-    for (&name, wire) in wires {
-        if name.starts_with('z') {
-            let is_good_z = matches!(wire, Xor(..)) || (matches!(wire, Or(..)) && name == "z45");
-            if !is_good_z {
-                bad_wires.push(name);
-                continue;
-            }
-        }
-        match *wire {
-            Xor(a, b) => {
-                let (a, b, inputs) = sorted_wires(a, b);
-                if matches!(inputs, (Input(..), Input(..))) {
-                    continue;
-                }
-                if !matches!(inputs, (Or(..), Xor(..))) {
-                    if matches!(inputs, (And(..), Xor(..))) && name == "z01" {
-                        continue;
-                    }
-                    bad_wires.push(if matches!(inputs.0, Or(..)) { b } else { a });
-                }
-            }
-            And(a, b) => {
-                let (a, b, inputs) = sorted_wires(a, b);
-                if matches!(inputs, (Input(..), Input(..))) {
-                    continue;
-                }
-                if !matches!(inputs, (Or(..), Xor(..))) {
-                    if matches!(inputs, (And("y00", "x00"), Xor(..))) {
-                        continue;
-                    }
-                    bad_wires.push(if matches!(inputs.0, Or(..)) { b } else { a });
-                }
-            }
-            Or(a, b) => {
-                let (a, b, inputs) = sorted_wires(a, b);
-                if !matches!(inputs, (And(..), And(..))) {
-                    bad_wires.push(if matches!(inputs.0, And(..)) { b } else { a });
-                }
-            }
-            Input(_) => {}
+    for (&name, &(op, a, b)) in gates {
+        let out_gates = gate_outputs[name]
+            .iter()
+            .map(|&c| gates[c].0)
+            .sorted()
+            .collect_vec();
+        let ok_wiring = match op {
+            And => out_gates == [Or] || out_gates == [And, Xor] && (a, b) == ("y00", "x00"),
+            Or => out_gates == [And, Xor] || name == "z45",
+            Xor => out_gates == [And, Xor] && is_input(a) && is_input(b) || name.starts_with('z'),
+        };
+        if !ok_wiring {
+            bad_wires.push(name);
         }
     }
-    bad_wires.iter().unique().sorted().join(",")
+
+    bad_wires.iter().sorted().join(",")
 }
 
 #[test]
@@ -127,8 +112,8 @@ x00 AND y00 -> z00
 x01 XOR y01 -> z01
 x02 OR y02 -> z02
 ";
-    let wires = parse_wires(sample).unwrap();
-    assert_eq!(get_numeric_output(&wires), 4);
+    let (inputs, gates) = parse_wires(sample).unwrap();
+    assert_eq!(get_numeric_output(&inputs, &gates), 4);
 }
 
 #[test]
@@ -181,6 +166,6 @@ hwm AND bqk -> z03
 tgd XOR rvg -> z12
 tnw OR pbm -> gnj
 ";
-    let wires = parse_wires(sample).unwrap();
-    assert_eq!(get_numeric_output(&wires), 2024);
+    let (inputs, gates) = parse_wires(sample).unwrap();
+    assert_eq!(get_numeric_output(&inputs, &gates), 2024);
 }
