@@ -47,10 +47,10 @@ fn get_numeric_output(inputs: &WireMap<bool>, gates: &WireMap<Gate>) -> u64 {
     gates
         .keys()
         .filter(|name| name.starts_with('z'))
-        .map(|name| {
+        .filter_map(|name| {
             let value = get_value(name, inputs, gates) as u64;
-            let bit: u32 = name[1..].parse().unwrap();
-            value << bit
+            let bit: u32 = name[1..].parse().ok()?;
+            Some(value << bit)
         })
         .sum()
 }
@@ -59,8 +59,10 @@ fn get_value(name: &str, inputs: &WireMap<bool>, gates: &WireMap<Gate>) -> bool 
     if let Some(&val) = inputs.get(name) {
         return val;
     };
-    let (op, a, b) = gates[name];
-    let (a, b) = (get_value(a, inputs, gates), get_value(b, inputs, gates));
+    let Some((op, a, b)) = gates.get(name) else {
+        return false;
+    };
+    let [a, b] = [a, b].map(|n| get_value(n, inputs, gates));
     match op {
         And => a & b,
         Or => a | b,
@@ -97,6 +99,41 @@ fn get_swapped_wires(gates: &WireMap<Gate>) -> String {
     }
 
     bad_wires.iter().sorted().join(",")
+}
+
+#[test]
+fn empty_input_test() {
+    assert_eq!(
+        run("").unwrap_err().to_string(),
+        "section separator not found"
+    );
+    assert_eq!(run("\n\n").unwrap(), "0 ");
+}
+
+#[test]
+fn bad_inputs_test() {
+    assert_eq!(
+        run("bad input\n\n").unwrap_err().to_string(),
+        "invalid line"
+    );
+    assert_eq!(
+        run("x0: 1\n\nbad gate").unwrap_err().to_string(),
+        "invalid gate line 'bad gate'"
+    );
+    assert_eq!(
+        run("x0: 1\n\nx0 NARF x0 -> z0").unwrap_err().to_string(),
+        "invalid gate line 'x0 NARF x0 -> z0'"
+    );
+}
+
+#[test]
+fn bad_output_name_test() {
+    assert_eq!(run("x0: 1\n\nx0 AND x0 -> zXXX").unwrap(), "0 zXXX");
+}
+
+#[test]
+fn unconnected_wire_test() {
+    assert_eq!(run("x0: 1\n\nx0 AND foo -> z0").unwrap(), "0 z0");
 }
 
 #[test]
