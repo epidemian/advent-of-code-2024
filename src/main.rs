@@ -1,4 +1,5 @@
 use anyhow::{Context, bail, ensure};
+use rayon::prelude::*;
 use std::{env, fs, io::IsTerminal, time};
 
 mod day_01_historian_hysteria;
@@ -57,28 +58,31 @@ fn main() -> aoc::Result<()> {
         day_25_code_chronicle::run,
     ];
 
-    let run_single_day = |day_num: usize| -> aoc::Result<()> {
+    let run_single_day = |day_num: usize| -> aoc::Result<String> {
         let instant = time::Instant::now();
         let filename = format!("inputs/{day_num:02}.txt");
         let input =
             fs::read_to_string(&filename).with_context(|| format!("Error reading {filename}"))?;
         let output = days[day_num - 1](&input)?;
         let time_annotation = format_time_annotation(instant.elapsed());
-        println!("Day {day_num}{time_annotation}: {output}");
-        Ok(())
+        Ok(format!("Day {day_num}{time_annotation}: {output}"))
     };
 
     let args: Vec<_> = env::args().collect();
     match args.len() {
         1 => {
-            for n in 1..=days.len() {
-                run_single_day(n)?;
+            let results: Vec<_> = (1..=days.len())
+                .into_par_iter()
+                .map(run_single_day)
+                .collect();
+            for result in results {
+                println!("{}", result?);
             }
         }
         2 => {
             let n = args[1].parse().context("Invalid day number")?;
             ensure!(1 <= n && n <= days.len(), "Day number out of range");
-            run_single_day(n)?;
+            println!("{}", run_single_day(n)?);
         }
         _ => {
             bail!("Usage: {} [day_number]", args[0]);
