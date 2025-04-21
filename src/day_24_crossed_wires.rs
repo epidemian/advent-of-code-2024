@@ -109,32 +109,30 @@ fn get_value(name: &str, inputs: &WireMap<bool>, gates: &WireMap<Gate>) -> bool 
 /// specific 45-bit full adder circuit. And it probably doesn't even detect all possible wire swaps,
 /// but it works for the given input file.
 fn get_swapped_wires(gates: &WireMap<Gate>) -> String {
-    let mut gate_outputs: WireMap<Vec<&str>> = WireMap::default();
-    for (&name, &(_op, a, b)) in gates {
-        gate_outputs.entry(name).or_default();
-        gate_outputs.entry(a).or_default().push(name);
-        gate_outputs.entry(b).or_default().push(name);
+    let mut output_gates: WireMap<Vec<Op>> = WireMap::default();
+    for (&name, &(op, a, b)) in gates {
+        output_gates.entry(name).or_default();
+        output_gates.entry(a).or_default().push(op);
+        output_gates.entry(b).or_default().push(op);
     }
+    output_gates.values_mut().for_each(|outs| outs.sort());
+
     let is_input = |name: &str| name.starts_with(['x', 'y']);
 
     let mut bad_wires = Vec::new();
     for (&name, &(op, a, b)) in gates {
-        let out_gates = gate_outputs[name]
-            .iter()
-            .map(|&c| gates[c].0)
-            .sorted()
-            .collect_vec();
+        let outputs = output_gates[name].as_slice();
         let ok_wiring = match op {
-            And => out_gates == [Or] || out_gates == [And, Xor] && (a, b) == ("y00", "x00"),
-            Or => out_gates == [And, Xor] || name == "z45",
-            Xor => out_gates == [And, Xor] && is_input(a) && is_input(b) || name.starts_with('z'),
+            And => outputs == [Or] || outputs == [And, Xor] && (a, b) == ("y00", "x00"),
+            Or => outputs == [And, Xor] || name == "z45",
+            Xor => outputs == [And, Xor] && is_input(a) && is_input(b) || name.starts_with('z'),
         };
         if !ok_wiring {
             bad_wires.push(name);
         }
     }
-
-    bad_wires.iter().sorted().join(",")
+    bad_wires.sort();
+    bad_wires.join(",")
 }
 
 #[test]
