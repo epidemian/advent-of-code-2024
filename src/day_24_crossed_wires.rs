@@ -70,8 +70,44 @@ fn get_value(name: &str, inputs: &WireMap<bool>, gates: &WireMap<Gate>) -> bool 
     }
 }
 
-// Note: This only works for the special case of the wiring being a full adder of 45-bit numbers
-// with the specific shape of the input.
+/// Detects swapped wires on a 45-bit full adder circuit
+///
+/// This circuit can be broken down into 45 1-bit adders. The first of which only consists of an AND
+/// and an OR gate, and should look like this:
+///
+///     ┌───┐       ┌───┐   ┌───┐
+///     │x00├──┬────┤XOR├───┤z00│
+///     └───┘  │ ┌──┤   │   └───┘
+///            │ │  └───┘
+///     ┌───┐  │ │  ┌───┐
+///     │y00├────┴──┤AND├─────┐
+///     └───┘  └────┤   │     │
+///                 └───┘    z00
+///                         carry
+///
+/// The other 44 1-bit adders also take the carry bit from the previous adder. They are made of two
+/// XOR, two AND, and an OR gate. For example, the x10 and y10 adder should look like this:
+///
+///       z09
+///      carry────────────────┐
+///                           │
+///     ┌───┐       ┌───┐     │  ┌───┐     ┌───┐
+///     │x10├──┬────┤XOR├───┬────┤XOR├─────┤z10│
+///     └───┘  │ ┌──┤   │   │ ├──┤   │     └───┘
+///            │ │  └───┘   │ │  └───┘
+///     ┌───┐  │ │  ┌───┐   │ │  ┌───┐
+///     │y10├────┴──┤AND├─┐ │ └──┤AND├─┐
+///     └───┘  └────┤   │ │ └────┤   │ │ ┌───┐
+///                 └───┘ │      └───┘ └─┤OR ├──┐
+///                       └──────────────┤   │  │
+///                                      └───┘ z10
+///                                           carry
+///
+/// Diagrams made with ASCIIFlow (https://asciiflow.com)
+///
+/// Note: This function is not general by any means. It only works for the special case of this
+/// specific 45-bit full adder circuit. And it probably doesn't even detect all possible wire swaps,
+/// but it works for the given input file.
 fn get_swapped_wires(gates: &WireMap<Gate>) -> String {
     let mut gate_outputs: WireMap<Vec<&str>> = WireMap::default();
     for (&name, &(_op, a, b)) in gates {
