@@ -1,6 +1,5 @@
 use anyhow::{Context, bail, ensure};
-use rayon::prelude::*;
-use std::{env, fs, io::IsTerminal, time};
+use std::{env, fs, io::IsTerminal, thread, time};
 
 mod day_01_historian_hysteria;
 mod day_02_red_nosed_reports;
@@ -71,13 +70,18 @@ fn main() -> aoc::Result<()> {
     let args: Vec<_> = env::args().collect();
     match args.len() {
         1 => {
-            let results: Vec<_> = (1..=days.len())
-                .into_par_iter()
-                .map(run_single_day)
-                .collect();
-            for result in results {
-                println!("{}", result?);
-            }
+            thread::scope(|s| {
+                let handles: Vec<_> = (1..=days.len())
+                    .map(|n| s.spawn(move || run_single_day(n)))
+                    .collect();
+                for handle in handles {
+                    let Ok(result) = handle.join() else {
+                        bail!("thread panicked")
+                    };
+                    println!("{}", result?)
+                }
+                Ok(())
+            })?;
         }
         2 => {
             let n = args[1].parse().context("Invalid day number")?;
