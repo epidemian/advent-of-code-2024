@@ -28,65 +28,51 @@ mod day_23_lan_party;
 mod day_24_crossed_wires;
 mod day_25_code_chronicle;
 
+const DAYS: [fn(&str) -> aoc::Result<String>; 25] = [
+    day_01_historian_hysteria::run,
+    day_02_red_nosed_reports::run,
+    day_03_mull_it_over::run,
+    day_04_ceres_search::run,
+    day_05_print_queue::run,
+    day_06_guard_gallivant::run,
+    day_07_bridge_repair::run,
+    day_08_resonant_collinearity::run,
+    day_09_disk_fragmenter::run,
+    day_10_hoof_it::run,
+    day_11_plutonian_pebbles::run,
+    day_12_garden_groups::run,
+    day_13_claw_contraption::run,
+    day_14_restroom_redoubt::run,
+    day_15_warehouse_woes::run,
+    day_16_reindeer_maze::run,
+    day_17_chronospatial_computer::run,
+    day_18_ram_run::run,
+    day_19_linen_layout::run,
+    day_20_race_condition::run,
+    day_21_keypad_conundrum::run,
+    day_22_monkey_market::run,
+    day_23_lan_party::run,
+    day_24_crossed_wires::run,
+    day_25_code_chronicle::run,
+];
+
 fn main() -> aoc::Result<()> {
-    let days = [
-        day_01_historian_hysteria::run,
-        day_02_red_nosed_reports::run,
-        day_03_mull_it_over::run,
-        day_04_ceres_search::run,
-        day_05_print_queue::run,
-        day_06_guard_gallivant::run,
-        day_07_bridge_repair::run,
-        day_08_resonant_collinearity::run,
-        day_09_disk_fragmenter::run,
-        day_10_hoof_it::run,
-        day_11_plutonian_pebbles::run,
-        day_12_garden_groups::run,
-        day_13_claw_contraption::run,
-        day_14_restroom_redoubt::run,
-        day_15_warehouse_woes::run,
-        day_16_reindeer_maze::run,
-        day_17_chronospatial_computer::run,
-        day_18_ram_run::run,
-        day_19_linen_layout::run,
-        day_20_race_condition::run,
-        day_21_keypad_conundrum::run,
-        day_22_monkey_market::run,
-        day_23_lan_party::run,
-        day_24_crossed_wires::run,
-        day_25_code_chronicle::run,
-    ];
-
-    let run_single_day = |day_num: usize| -> aoc::Result<String> {
-        let instant = time::Instant::now();
-        let filename = format!("inputs/{day_num:02}.txt");
-        let input =
-            fs::read_to_string(&filename).with_context(|| format!("Error reading {filename}"))?;
-        let output = days[day_num - 1](&input)?;
-        let time_annotation = format_time_annotation(instant.elapsed());
-        Ok(format!("Day {day_num}{time_annotation}: {output}"))
-    };
-
     let args: Vec<_> = env::args().collect();
     match args.len() {
         1 => {
-            thread::scope(|s| {
-                let handles: Vec<_> = (1..=days.len())
-                    .map(|n| s.spawn(move || run_single_day(n)))
-                    .collect();
-                for handle in handles {
-                    let Ok(result) = handle.join() else {
-                        bail!("thread panicked")
-                    };
-                    println!("{}", result?)
-                }
-                Ok(())
-            })?;
+            let handles: Vec<_> = (1..=DAYS.len())
+                .map(|n| thread::spawn(move || run_single_day(n)))
+                .collect();
+            for handle in handles {
+                let output = handle.join().unwrap_or_else(|_| bail!("thread panicked"))?;
+                println!("{output}")
+            }
         }
         2 => {
             let n = args[1].parse().context("Invalid day number")?;
-            ensure!(1 <= n && n <= days.len(), "Day number out of range");
-            println!("{}", run_single_day(n)?);
+            ensure!(1 <= n && n <= DAYS.len(), "Day number out of range");
+            let output = run_single_day(n)?;
+            println!("{output}");
         }
         _ => {
             bail!("Usage: {} [day_number]", args[0]);
@@ -94,6 +80,16 @@ fn main() -> aoc::Result<()> {
     }
 
     Ok(())
+}
+
+fn run_single_day(day_num: usize) -> aoc::Result<String> {
+    let instant = time::Instant::now();
+    let filename = format!("inputs/{day_num:02}.txt");
+    let input =
+        fs::read_to_string(&filename).with_context(|| format!("Error reading {filename}"))?;
+    let output = DAYS[day_num - 1](&input)?;
+    let time_annotation = format_time_annotation(instant.elapsed());
+    Ok(format!("Day {day_num}{time_annotation}: {output}"))
 }
 
 fn format_time_annotation(elapsed: time::Duration) -> String {
