@@ -3,7 +3,7 @@ use itertools::Itertools;
 use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 
 pub fn run(input: &str) -> aoc::Answer {
-    let (towels, designs) = input.split_once("\n\n").context("Invalid input")?;
+    let (towels, designs) = input.split_once("\n\n").context("invalid input")?;
     let towels: HashSet<_> = towels.split(", ").collect();
     let designs = designs.lines().collect_vec();
     let max_towel_len = towels.iter().map(|t| t.len()).max().unwrap_or(0);

@@ -3,7 +3,7 @@ use itertools::{Itertools, iproduct};
 use pathfinding::prelude::{bfs_reach, count_paths};
 
 pub fn run(input: &str) -> aoc::Answer {
-    let (ref map, w, h) = aoc::parse_grid(input, |ch| ch.to_digit(10).context("Invalid number"))?;
+    let (ref map, w, h) = aoc::parse_grid(input, |ch| ch.to_digit(10).context("invalid number"))?;
     let trailheads = iproduct!(0..w, 0..h)
         .filter(|&(x, y)| map[y][x] == 0)
         .collect_vec();

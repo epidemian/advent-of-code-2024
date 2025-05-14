@@ -39,7 +39,7 @@ pub fn run(input: &str) -> aoc::Answer {
         |&(_a, i)| i == 0,
     )
     .and_then(|path| path.last().copied())
-    .context("Could not find a value A to make the program a quine")?;
+    .context("could not find a value A to make the program a quine")?;
 
     ensure!(run_program(min_a, b, c, &program) == program);
 
@@ -80,9 +80,9 @@ fn run_program(mut a: u64, mut b: u64, mut c: u64, program: &[u64]) -> Vec<u64> 
 }
 
 fn parse_program(input: &str) -> aoc::Result<(u64, u64, u64, Vec<u64>)> {
-    let (registers, program) = input.split_once("\n\n").context("Invalid input")?;
+    let (registers, program) = input.split_once("\n\n").context("invalid input")?;
     let registers = aoc::parse_numbers(registers)?;
-    let [a, b, c] = registers[..].try_into().context("Expected 3 registers")?;
+    let [a, b, c] = registers[..].try_into().context("expected 3 registers")?;
     let program = aoc::parse_numbers(program)?;
     Ok((a, b, c, program))
 }

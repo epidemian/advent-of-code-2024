@@ -5,9 +5,9 @@ use rustc_hash::FxHashSet as HashSet;
 
 pub fn run(input: &str) -> aoc::Answer {
     let falling_bytes = parse_byte_coordinates(input)?;
-    let step_count = find_path(&falling_bytes[0..1024], 70).context("Path to exit not found")?;
+    let step_count = find_path(&falling_bytes[0..1024], 70).context("path to exit not found")?;
     let (bx, by) = find_first_blocking_byte(&falling_bytes, 70)
-        .context("No byte that blocks path to exit found")?;
+        .context("no byte that blocks path to exit found")?;
     aoc::answers(step_count, format!("{bx},{by}"))
 }
 
@@ -16,7 +16,7 @@ fn parse_byte_coordinates(input: &str) -> aoc::Result<Vec<(u32, u32)>> {
         aoc::parse_numbers(l)?
             .into_iter()
             .collect_tuple()
-            .context("Expected two numbers")
+            .context("expected two numbers")
     };
     input.lines().map(parse_coordinates).try_collect()
 }

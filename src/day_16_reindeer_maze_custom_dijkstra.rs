@@ -13,7 +13,7 @@ pub fn run(input: &str) -> aoc::Answer {
     let (maze, w, h) = aoc::parse_char_grid(input)?;
     let start_pos = iproduct!(0..w, 0..h)
         .find(|&(x, y)| maze[y][x] == 'S')
-        .context("Start not found")?;
+        .context("start not found")?;
     let dirs = [(1, 0), (0, 1), (-1, 0), (0, -1)];
     let start = (start_pos, 0);
     let successors = |((x, y), d): ((usize, usize), usize)| {
@@ -28,7 +28,7 @@ pub fn run(input: &str) -> aoc::Answer {
             .filter(|&(((x, y), _), _)| x < w && y < h && maze[y][x] != '#')
     };
     let (parents, end) = dijkstra_multi_path(start, successors, |((x, y), _)| maze[y][x] == 'E');
-    let end = end.context("Path to end not found")?;
+    let end = end.context("path to end not found")?;
     let best_score = parents[&end].1;
 
     // Get all best paths' tiles from `parents` using BFS starting from the end.
@@ -85,9 +85,9 @@ where
 
 #[test]
 fn bad_inputs_test() {
-    assert_eq!(run("").unwrap_err().to_string(), "Start not found");
-    assert_eq!(run("S").unwrap_err().to_string(), "Path to end not found");
-    assert_eq!(run("S#E").unwrap_err().to_string(), "Path to end not found");
+    assert_eq!(run("").unwrap_err().to_string(), "start not found");
+    assert_eq!(run("S").unwrap_err().to_string(), "path to end not found");
+    assert_eq!(run("S#E").unwrap_err().to_string(), "path to end not found");
 }
 
 #[test]

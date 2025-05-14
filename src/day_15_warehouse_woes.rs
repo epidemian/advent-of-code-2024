@@ -4,7 +4,7 @@ use pathfinding::prelude::bfs_reach;
 use rustc_hash::FxHashMap as HashMap;
 
 pub fn run(input: &str) -> aoc::Answer {
-    let (map, instructions) = input.split_once("\n\n").context("Invalid input")?;
+    let (map, instructions) = input.split_once("\n\n").context("invalid input")?;
     let (map, w, h) = aoc::parse_char_grid(map)?;
     let map = iproduct!(0..w, 0..h)
         .map(|(x, y)| ((x as i64, y as i64), map[y][x]))
@@ -35,7 +35,7 @@ fn widen_map(map: &Map) -> Map {
 
 fn run_robot(mut map: Map, instructions: &str) -> aoc::Result<i64> {
     let robot = map.iter().find_map(|(pos, &ch)| (ch == '@').then_some(pos));
-    let &(mut bot_x, mut bot_y) = robot.context("Robot not found")?;
+    let &(mut bot_x, mut bot_y) = robot.context("robot not found")?;
     for ins in instructions.chars() {
         let (dx, dy) = match ins {
             '^' => (0, -1),
@@ -73,8 +73,8 @@ fn run_robot(mut map: Map, instructions: &str) -> aoc::Result<i64> {
 
 #[test]
 fn no_robot_test() {
-    assert_eq!(run("\n\n").unwrap_err().to_string(), "Robot not found");
-    assert_eq!(run("..\n\n").unwrap_err().to_string(), "Robot not found");
+    assert_eq!(run("\n\n").unwrap_err().to_string(), "robot not found");
+    assert_eq!(run("..\n\n").unwrap_err().to_string(), "robot not found");
 }
 
 #[test]

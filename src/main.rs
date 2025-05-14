@@ -69,13 +69,13 @@ fn main() -> aoc::Result<()> {
             }
         }
         2 => {
-            let n = args[1].parse().context("Invalid day number")?;
-            ensure!(1 <= n && n <= DAYS.len(), "Day number out of range");
+            let n = args[1].parse().context("invalid day number")?;
+            ensure!(1 <= n && n <= DAYS.len(), "day number out of range");
             let output = run_single_day(n)?;
             println!("{output}");
         }
         _ => {
-            bail!("Usage: {} [day_number]", args[0]);
+            bail!("usage: {} [day_number]", args[0]);
         }
     }
 
@@ -86,7 +86,7 @@ fn run_single_day(day_num: usize) -> aoc::Result<String> {
     let instant = time::Instant::now();
     let filename = format!("inputs/{day_num:02}.txt");
     let input =
-        fs::read_to_string(&filename).with_context(|| format!("Error reading {filename}"))?;
+        fs::read_to_string(&filename).with_context(|| format!("error reading {filename}"))?;
     let output = DAYS[day_num - 1](&input)?;
     let time_annotation = format_time_annotation(instant.elapsed());
     Ok(format!("Day {day_num}{time_annotation}: {output}"))

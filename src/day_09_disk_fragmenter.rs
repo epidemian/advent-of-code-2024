@@ -5,7 +5,7 @@ use std::iter::repeat_n;
 pub fn run(input: &str) -> aoc::Answer {
     let mut blocks = vec![];
     for (ch, i) in input.trim().chars().zip(0..) {
-        let size = ch.to_digit(10).context("Expected a digit")?;
+        let size = ch.to_digit(10).context("expected a digit")?;
         let block = if i % 2 == 0 { i / 2 } else { FREE };
         blocks.extend(repeat_n(block, size as usize));
     }

@@ -19,7 +19,7 @@ fn find_path(input: &str) -> aoc::Result<Vec<(usize, usize)>> {
             .map(move |(dx, dy)| (x.wrapping_add_signed(dx), y.wrapping_add_signed(dy)))
             .filter(move |&(nx, ny)| nx < w && ny < h && map[ny][nx] != '#')
     };
-    bfs(&start, successors, |&(x, y)| map[y][x] == 'E').context("Path to the end not found")
+    bfs(&start, successors, |&(x, y)| map[y][x] == 'E').context("path to the end not found")
 }
 
 fn count_cheats(path: &[(usize, usize)], max_cheat: isize, min_save_time: isize) -> usize {

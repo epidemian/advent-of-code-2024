@@ -87,7 +87,7 @@ fn find_easter_egg(robots: &[(Point, Point)], width: i64, height: i64) -> aoc::R
             return Ok(seconds);
         }
     }
-    bail!("Easter egg not found")
+    bail!("easter egg not found")
 }
 
 #[test]
